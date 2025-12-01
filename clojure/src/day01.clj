@@ -262,6 +262,35 @@ L82")
 
 
 
+
+
+;; ## Both parts at once
+;;
+;; If we take a look and compare our `part-1` and `part-2` functions, we'll
+;; notice they are basically the same, effectively only one line
+;; (how to count zeros) is different.
+;; Let's make a function which solves both parts at once:
+
+(defn both-parts [data]
+  (-> (reduce (fn [[start pt-1 pt-2] n]
+                (let [end  (+ start n)
+                      end' (mod end size)]
+                  [end'
+                   (if (zero? end') (inc pt-1) pt-1)
+                   (+ pt-2
+                      (abs (quot end size))
+                      (if (>= start 1 0 end) 1 0))]))
+              [start 0 0]
+              data)
+      rest))
+
+(both-parts example-data)
+(both-parts data)
+
+
+
+
+
 ;; ## Conclusion
 ;;
 ;; This was much harder than expected for Day 1, and I'm including there the
@@ -287,5 +316,4 @@ L82")
 ^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
 (defn -main [input]
   (let [data (parse-data input)]
-    [(part-1 data)
-     (part-2 data)]))
+    (both-parts data)))
