@@ -1,0 +1,49 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test-solutions:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        kind: [tests] #, benchmark]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Prepare java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '25'
+
+      - name: Install Clojure
+        uses: DeLaGuardo/setup-clojure@13.4
+        with:
+          cli: 'latest'
+
+      - name: Cache clojure dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+          # List all files containing dependencies:
+          key: cljdeps-${{ hashFiles('deps.edn') }}
+          restore-keys: cljdeps-
+
+      - name: Run tests
+        if : ${{ matrix.kind == 'tests' }}
+        working-directory: clojure
+        run: clojure -M:test
+
+      # - name: Benchmark solutions
+      #   if : ${{ matrix.kind == 'benchmark' }}
+      #   working-directory: clojure
+      #   run: clojure -M -m solutions-benchmark
