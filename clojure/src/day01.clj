@@ -98,13 +98,13 @@ L82")
 ;; after a rotation.
 
 (defn part-1 [data]
-  (-> (reduce (fn [[cnt start] n]
-                (let [end (mod (+ start n) size)] ; [1]
-                  [(if (zero? end) (inc cnt) cnt) ; [2]
+  (-> (reduce (fn [[zeros start] n]
+                (let [end (mod (+ start n) size)]     ; [1]
+                  [(if (zero? end) (inc zeros) zeros) ; [2]
                    end]))
-              [0 start]                           ; [3]
+              [0 start]                               ; [3]
               data)
-      first))                                     ; [4]
+      first))                                         ; [4]
 
 ;; We will `reduce` through the input data.\
 ;; We need to track two values [3]: the number of times we reached zero, and
@@ -141,32 +141,27 @@ L82")
 ;; I've hit several edge cases which produced a wrong result.
 
 (defn part-2 [data]
-  (-> (reduce (fn [[cnt start] n]
+  (-> (reduce (fn [[zeros start] n]
                 (let [end (+ start n)]
-                  [(+ cnt
-                      (abs (quot end size)) ; [1]
-                      (cond
-                        (zero? end)     1   ; [2]
-                        (> start 0 end) 1   ; [3]
-                        :else           0))
-                   (mod end size)]))        ; [4]
+                  [(+ zeros
+                      (abs (quot end size))        ; [1]
+                      (if (>= start 1 0 end) 1 0)) ; [2]
+                   (mod end size)]))               ; [3]
               [0 start]
               data)
-      first))                               ; [5]
+      first))                                      ; [4]
 
 
 ;; If the result of a turn (in absolute value) is higher than 100, e.g. -765, it means
 ;; that we crossed zero at least 7 times [1].\
-;; If we, after we finished rotating the dial for an instruction, land on zero [2],
-;; that's one more zero we've encountered.
-;; There's also a possibility that we cross the zero when moving left, e.g. making 10
-;; left turns starting from 5. This only counts if we didn't start from zero [3], since
-;; then we're not _passing through_ zero, and we've already counted previously that
-;; we stopped at zero.\
-;; Our position on the dial is always positive [4].
+;; The condition [2] covers cases where we start from a positive starting position
+;; (`(>= start 1)`) and we either stop at or pass through zero (`(>= 0 end)`).
+;; If we started from a zero, we don't cross it (and we counted it already on
+;; a previous turn).\
+;; Our end position on the dial is always positive [3].
 ;;
 ;; Once we finish rotating the dial, as in the first part, we're only interested
-;; in the number of times we've seen zero [5].
+;; in the number of times we've seen zero [4].
 
 (part-2 example-data)
 (part-2 data)
