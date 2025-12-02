@@ -3,6 +3,7 @@
   {:title "Secret Entrance"
    :url "https://adventofcode.com/2025/day/1"
    :extras "bench"
+   :highlights "subs, mapcat, reductions"
    :remark "Harder than expected for day 1."
    :nextjournal.clerk/auto-expand-results? true
    :nextjournal.clerk/toc true}

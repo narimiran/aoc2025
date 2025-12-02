@@ -1,7 +1,7 @@
 (ns solutions-test
   (:require
    [aoc-utils.core :as aoc]
-   day01 ;day02 day03 day04
+   day01 day02 ;day03 day04
    ;day05 day06 day07 day08
    ;day09 day10 day11 day12
    [clojure.test :refer [deftest is]]))
@@ -21,3 +21,4 @@
 
 
 (check-day 1 [3 6] [1168 7199])
+(check-day 2 [1227775554 4174379265] [28146997880 40028128307])
