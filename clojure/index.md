@@ -21,3 +21,4 @@ Day 0: aoc-utils helper package                                             | [a
 Day 1: [Secret Entrance](https://adventofcode.com/2025/day/1)               | [day01.clj](src/day01) | subs, mapcat, reductions       | bench                | Harder than expected for day 1.
 Day 2: [Gift Shop](https://adventofcode.com/2025/day/2)                     | [day02.clj](src/day02) | partition, re-matches          | optimization         | Easier than Day 1.
 Day 3: [Lobby](https://adventofcode.com/2025/day/3)                         | [day03.clj](src/day03) | reduce-kv, reduced, partial    |                      | Recursion made easy.
+Day 4: [Printing Department](https://adventofcode.com/2025/day/4)           | [day04.clj](src/day04) | grid helpers                   |                      | The easiest one this year.
