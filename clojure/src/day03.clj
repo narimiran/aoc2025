@@ -221,9 +221,9 @@
 
 ;; ----
 ;;
-;; [< Previous solution](day02)
+;; [< Previous solution](../day02)
 ;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day03.clj)
-;; | [Next solution >](day04)
+;; | [Next solution >](../day04)
 
 
 

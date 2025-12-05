@@ -133,7 +133,7 @@
 ;; `accessible`. We need to repeat the process until we cannot remove any more
 ;; rolls.
 ;;
-;; Recursion time! Unlike [yesterday](./day03) when we used `loop` for recursion,
+;; Recursion time! Unlike [yesterday](../day03) when we used `loop` for recursion,
 ;; today we'll do it by repeatedly calling a function.
 
 (defn part-2
@@ -183,9 +183,9 @@
 
 ;; ----
 ;;
-;; [< Previous solution](day03)
+;; [< Previous solution](../day03)
 ;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day04.clj)
-;; | [Next solution >](day05)
+;; | [Next solution >](../day05)
 
 
 

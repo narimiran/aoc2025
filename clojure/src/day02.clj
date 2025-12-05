@@ -100,7 +100,7 @@
 ;;
 ;; If we would use `map` for this, each range would produce its own list of
 ;; invalid IDs, i.e. the result would be a nested list.
-;; Instead, just like in [Day 1](./day01), we can use `mapcat` to create a
+;; Instead, just like in [Day 1](../day01), we can use `mapcat` to create a
 ;; flat list of numbers we can add up to get the result we need.
 
 (defn count-invalids [data check-fn]
@@ -261,9 +261,9 @@
 
 ;; ----
 ;;
-;; [< Previous solution](day01)
+;; [< Previous solution](../day01)
 ;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day02.clj)
-;; | [Next solution >](day03)
+;; | [Next solution >](../day03)
 
 
 
