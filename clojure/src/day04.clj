@@ -2,13 +2,16 @@
 (ns day04
   {:title "Printing Department"
    :url "https://adventofcode.com/2025/day/4"
-   :extras ""
+   :extras "animation"
    :highlights "grid helpers"
    :remark "The easiest one this year."
    :nextjournal.clerk/auto-expand-results? true
    :nextjournal.clerk/toc true}
   (:require [aoc-utils.core :as aoc]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [quil.core :as q]
+            [quil.middleware :as m]
+            [nextjournal.clerk :as clerk]))
 
 
 
@@ -29,7 +32,7 @@
 .@@@@@@@@.
 @.@.@@@.@.")
 
-;; Every `@` is a large roll of paper (am I the only one who initialy mis-read
+;; Every `@` is a large roll of paper (am I the only one who initially misread
 ;; the task and thought this is about some rolls of _toilet_ paper?)
 ;; and the problem is that they are blocking the wall to a cafeteria, where
 ;; we want to go next.
@@ -163,6 +166,79 @@
 
 
 
+;; ## Animation
+;;
+;; This task is ideal to make an animation of how the forklifts are removing
+;; the rolls.
+;;
+;; As usual (if you're interested, see the
+;; [visualizations I did for AoC 2016](https://github.com/narimiran/advent_of_code_2016?tab=readme-ov-file#visualizations)),
+;; I'm using the [Quil library](http://quil.info) to create animations.
+;;
+;; I won't be explaining what each part of the code does, but here it is in
+;; its entirety so you can experiment with it yourself.
+
+{:nextjournal.clerk/visibility {:result :hide}}
+
+(defn build-states [rolls]
+  (loop [accessible-states [[]]
+         rolls rolls]
+    (let [to-remove (accessible rolls)]
+      (if (empty? to-remove)
+        accessible-states
+        (recur (conj accessible-states to-remove)
+               (set/difference rolls to-remove))))))
+
+(defn draw-rolls [rolls]
+  (doseq [[x y] rolls]
+    (q/ellipse x y 0.9 0.9)))
+
+(defn setup []
+  (q/scale 7)
+  (q/frame-rate 8)
+  (q/no-stroke)
+  (q/background 15 15 33)
+  (q/fill 150)
+  (q/ellipse-mode :corner)
+  (draw-rolls data)
+  (q/delay-frame 500)
+  (build-states data))
+
+
+(defn draw-state [state]
+  (when (empty? state)
+    (q/delay-frame 2000)
+    (q/exit))
+  (q/fill 255 255 102)
+  (q/scale 7)
+  (draw-rolls (first state))
+  #_(q/save-frame "/tmp/imgs/day04-####.jpg"))
+
+
+(comment
+  (q/sketch
+   :size [960 960]
+   :setup #'setup
+   :update rest
+   :draw #'draw-state
+   :middleware [m/fun-mode]))
+
+;; To make a video from the frames created above, I've used the following command:\
+;; `ffmpeg -framerate 8 -i /tmp/imgs/day04-%04d.jpg -vf tpad=start_duration=1:start_mode=clone:stop_mode=clone:stop_duration=2 -c:v libx264 -pix_fmt yuv420p imgs/day04.mp4`
+;;
+;; And the result is:
+
+^{:nextjournal.clerk/visibility {:code :hide :result :show}}
+
+(clerk/html
+ [:video {:controls true}
+  [:source {:src "https://i.imgur.com/UKHxdoR.mp4"
+            :type "video/mp4"}]
+  "Your browser does not support the video tag."])
+
+
+
+
 
 
 ;; ## Conclusion
@@ -172,9 +248,8 @@
 ;; up very soon.\
 ;; And we can expect harder grid-based task(s) later on.
 ;;
-;; This task was ideal to make some animations of rolls removal, but unfortunately
-;; I didn't have the time to do it today. Maybe I'll add something later on,
-;; time permitting.
+;; We took the opportunity and made an animation of roll-removal.
+;;
 ;;
 ;; Today's highlights:
 ;; - `aoc/create-grid`: helper for tasks like this one
