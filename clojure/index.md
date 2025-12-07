@@ -24,3 +24,4 @@ Day 3: [Lobby](https://adventofcode.com/2025/day/3)                         | [d
 Day 4: [Printing Department](https://adventofcode.com/2025/day/4)           | [day04.clj](src/day04) | grid helpers                   | animation            | The easiest one this year.
 Day 5: [Cafeteria](https://adventofcode.com/2025/day/5)                     | [day05.clj](src/day05) | some, sort                     |                      | Work sorter, not harder.
 Day 6: [Trash Compactor](https://adventofcode.com/2025/day/6)               | [day06.clj](src/day06) | comp, partition-by, take-nth   |                      | Advent of Parsing.
+Day 7: [Laboratories](https://adventofcode.com/2025/day/7)                  | [day07.clj](src/day07) | fnil, memoize                  |                      | I smell something Lanternfishy.
