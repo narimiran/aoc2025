@@ -2,7 +2,7 @@
   (:require
    [aoc-utils.core :as aoc]
    day01 day02 day03 day04
-   day05 day06 day07 ;day08
+   day05 day06 day07 day08
    ;day09 ;day10 ;day11 ;day12
    [clojure.test :refer [deftest is]]))
 
@@ -27,3 +27,4 @@
 (check-day 5 [3 14] [661 359526404143208])
 (check-day 6 [4277556 3263827] [4449991244405 9348430857627])
 (check-day 7 [21 40] [1605 29893386035180])
+(check-day 8 nil [352584 9617397716])

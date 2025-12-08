@@ -25,3 +25,4 @@ Day 4: [Printing Department](https://adventofcode.com/2025/day/4)           | [d
 Day 5: [Cafeteria](https://adventofcode.com/2025/day/5)                     | [day05.clj](src/day05) | some, sort                     |                      | Work sorter, not harder.
 Day 6: [Trash Compactor](https://adventofcode.com/2025/day/6)               | [day06.clj](src/day06) | comp, partition-by, take-nth   |                      | Advent of Parsing.
 Day 7: [Laboratories](https://adventofcode.com/2025/day/7)                  | [day07.clj](src/day07) | fnil, memoize                  |                      | I smell something Lanternfishy.
+Day 8: [Playground](https://adventofcode.com/2025/day/8)                    | [day08.clj](src/day08) | hash-set, disj                 |                      | No Manhattan distance? Wow!
