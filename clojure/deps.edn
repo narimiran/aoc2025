@@ -1,6 +1,6 @@
 {:paths ["src" "tests" "dev"]
  :deps  {org.clojure/clojure            {:mvn/version "1.12.3"}
-         com.github.narimiran/aoc-utils {:git/tag "v0.9.1" :git/sha "122f474"}
+         com.github.narimiran/aoc-utils {:git/tag "v0.9.3" :git/sha "e951804"}
          criterium/criterium            {:mvn/version "0.4.6"}
          io.github.nextjournal/clerk    {:mvn/version "0.18.1158"}
          quil/quil                      {:mvn/version "4.3.1563"}}
