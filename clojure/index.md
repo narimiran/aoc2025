@@ -29,3 +29,4 @@ Day 8: [Playground](https://adventofcode.com/2025/day/8)                    | [d
 Day 9: [Movie Theater](https://adventofcode.com/2025/day/9)                 | [day09.clj](src/day09) | every?, pmap, ffirst           |                      | The hardest one so far.
 Day 10: [Factory](https://adventofcode.com/2025/day/10)                     | [day10.clj](src/day10) | constantly, not                |                      | Just Part 1 this time.
 Day 11: [Reactor](https://adventofcode.com/2025/day/11)                     | [day11.clj](src/day11) |                                |                      | Surprisingly easy.
+Day 12: [Christmas Tree Farm](https://adventofcode.com/2025/day/12)         | [day12.clj](src/day12) |                                |                      | The most disappointing AoC task ever?
