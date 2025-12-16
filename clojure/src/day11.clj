@@ -3,7 +3,7 @@
   {:title "Reactor"
    :url "https://adventofcode.com/2025/day/11"
    :extras ""
-   :highlights ""
+   :highlights "memoize, zero?"
    :remark "Surprisingly easy."
    :nextjournal.clerk/auto-expand-results? true
    :nextjournal.clerk/toc true}
@@ -190,7 +190,10 @@ hhh: out")
 ;; the next to last task this year. But I guess we deserved some breathing
 ;; room after yesterday's task.
 ;;
-;; No new functions to highlight today.
+;; Today's highlights:
+;; - `memoize`: cache the results of a function
+;; - `zero?`: beware, unlike `#(= 0 %)`, it throws an exception if not
+;;   provided a number
 
 
 ;; ----

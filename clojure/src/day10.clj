@@ -3,8 +3,8 @@
   {:title "Factory"
    :url "https://adventofcode.com/2025/day/10"
    :extras ""
-   :highlights "constantly, not"
-   :remark "Just Part 1 this time."
+   :highlights "constantly, cond->, keep"
+   :remark "Divide and conquer."
    :nextjournal.clerk/auto-expand-results? true
    :nextjournal.clerk/toc true}
   (:require [aoc-utils.core :as aoc]))
@@ -191,26 +191,156 @@
 
 
 
+
+
 ;; ## Part 2
 ;;
-;; _"Ain't nobody got time fo' dat."_
+;; Thanks to [this brilliant insight](https://old.reddit.com/r/adventofcode/comments/1pk87hl/2025_day_10_part_2_bifurcate_your_way_to_victory/),
+;; there is a relatively easy solution for Part 2, which we will implement here.\
+;; I wont't repeat in detail what was said in the linked post, you should
+;; definitely read it.
+;;
+;; For this to work, we need to modify the `press-buttons` function to not
+;; just search for the best best result, but to give _all_ button `presses`
+;; which would give the `goal` state.
+
+(def press-buttons'
+  (memoize
+   (fn [buttons goal]
+     (let [initial-lights (mapv (constantly false) goal)
+           initial-state [initial-lights buttons []]]        ; [1]
+       (loop [[[lights buttons presses] & states'] (list initial-state)
+              results #{}]                                   ; [2]
+         (let [results' (cond-> results
+                          (= lights goal) (conj presses))]   ; [3]
+           (cond
+             (nil? lights) results ; [4]
+
+             (seq buttons)         ; [5]
+             (let [[button & buttons'] buttons
+                   lights'             (toggle lights button)
+                   presses'            (conj presses button)]
+               (recur (conj states'
+                            [lights' buttons' presses']
+                            [lights  buttons' presses])
+                      results'))
+
+             :else (recur states' results'))))))))
+
+
+;; We now track not just the number of button presses, but we need to know
+;; exactly what buttons were pressed [1].\
+;; The `results` will be a set of all button-pressing combinations which
+;; give us the wanted solution [2]. When we weach the `goal`, we add the
+;; current `presses` to the `results` [3].
+;; To conditionally update `results`, only if we reached the `goal`, we can
+;; use the [`cond->` macro](https://clojuredocs.org/clojure.core/cond-%3E).
+;;
+;; The exit condition is the same as before: when there are no more states
+;; to explore [4].\
+;; The line [5] is the key difference: we're not interested in just the best
+;; result (with the fewest button presses), we will continue exploring the
+;; states for _every_ button (not) pressed.
+;;
+;; For example, for the first line in our example:
+
+(let [[goal buttons _] (first example-data)]
+  (press-buttons' buttons goal))
+
+
+;; So we have a way to solve a single recursion step, and now we need
+;; to find a way to go to a new state for the next recursion step.
+
+(defn new-state [joltages presses]
+  (let [joltages' (reduce #(update %1 %2 dec) ; [1]
+                          joltages
+                          (flatten presses))] ; [2]
+    (when (not-any? neg? joltages')           ; [3]
+      [(mapv #(quot % 2) joltages')           ; [4]
+       (count presses)])))
+
+;; For each result we will calculate the remaining `joltages'` of each light
+;; by `dec`reasing the current joltage of that light every time a button
+;; has modified it [1]. To convert a nested list of button-presses to
+;; a flat list of light-modifications, we use the
+;; [`flatten` function](https://clojuredocs.org/clojure.core/flatten) [2].
+;;
+;; If any of the new light joltages is negative, it means we've reached
+;; an illegal state and we'll return `nil` [3].
+;; Otherwise, we need to know the `count` of button presses, and we
+;; prepare our next state by dividing the new joltages by two.
+;; (Why? It is explained in the linked insight.)
+;;
+;; Here's an example:
+
+(let [[_ buttons joltages] (first example-data)
+      goal (mapv odd? joltages)]
+  (->> (press-buttons' buttons goal)
+       (mapv #(new-state joltages %))))
 
 
 
+;; Time to put it all together:
 
+(def press-buttons-2
+  (memoize
+   (fn [buttons joltages]
+     (if (every? zero? joltages) 0           ; [1]
+         (->> joltages
+              (map odd?)                     ; [2]
+              (press-buttons' buttons)       ; [3]
+              (keep #(new-state joltages %)) ; [4]
+              (map (fn [[joltages' presses]] ; [5]
+                     (+ presses
+                      (* 2 (press-buttons-2 buttons joltages')))))
+              (reduce min 100000))))))       ; [6]
+
+;; If our recursion reached the state where every remaining joltage is zero,
+;; there's no more presses to be made and we return zero [1].\
+;; Otherwise, our current `goal` is defined by parity of the current joltages [2].
+;; We press the buttons to reach that goal [3] and then use the
+;; [`keep` function](https://clojuredocs.org/clojure.core/keep) to
+;; return only valid new states [4], as defined above.
+;;
+;; For each new state we re-enter the recursion and the total number of
+;; button presses for a current state is calculated as a sum of current
+;; button presses and twice the button presses of a new state. [5]
+;; (You know why twice because you've already read the linked insight.)
+;;
+;; In the end, we need to find the minimum amount of button presses of all
+;; the states explored [6].
+
+
+(defn part-2 [data]
+  (aoc/sum-pmap (fn [[_ b j]] (press-buttons-2 b j)) data))
+
+;; All that is left to do is to call the above function for each row of
+;; our input and sum the results. To do this in a bit less time, we will
+;; use the [`aoc/sum-pmap` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-sum-pmap),
+;; which uses the [`pmap` function](https://clojuredocs.org/clojure.core/pmap)
+;; to apply the function in parallel.
+
+(part-2 example-data)
+(part-2 data)
+
+
+;; Wow, this was an interesting journey!
 
 
 
 ;; ## Conclusion
 ;;
-;; If we ignore Part 2, this was a nice easy task.
+;; Part 1 was a nice and relatively easy task.
 ;;
-;; For Part 2 I've seen people either opting for external libraries which make
-;; it a breeze, or struggle with it. I decided to skip it.
+;; Part 2 uses the [brilliant idea](https://old.reddit.com/r/adventofcode/comments/1pk87hl/2025_day_10_part_2_bifurcate_your_way_to_victory/)
+;; on how to approach this task and recursively split it into smaller tasks
+;; we know how to solve (from Part 1).
 ;;
 ;; Today's highlights:
 ;; - `constantly`: create a function that always returns the same value
-;; - `not`: toggle a boolean value
+;; - `cond->`: conditionally update an expression
+;; - `keep`: return non-nil results of applying a function to the elements of
+;;   a collection
 
 
 ;; ----
@@ -224,4 +354,5 @@
 ^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
 (defn -main [input]
   (let [data (parse-data input)]
-    (part-1 data)))
+    [(part-1 data)
+     (part-2 data)]))

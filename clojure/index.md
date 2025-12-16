@@ -6,9 +6,10 @@ Hello there!
 - What is `aoc-utils`? It is the library I've wrote this year, with some helper functions
   I often use for AoC tasks. Check out [its repo](https://github.com/narimiran/aoc-utils)
   and/or browse through [its documentation](https://narimiran.github.io/aoc-utils/).
-- Looking for my solutions of previous years? Take a look
-  [at the links here](https://github.com/narimiran/aoc2025),
-  there you'll find my solutions in Clojure, Elixir, Nim, OCaml, Python, Racket;
+- Source code of these notebooks is [available here](https://github.com/narimiran/aoc2025),
+  where you can also find links to the repos with my solutions of previous AoC
+  instances.
+  You'll find my solutions in Clojure, Elixir, Nim, OCaml, Python, Racket;
   often multiple languages per each AoC year.
 
 
@@ -27,6 +28,6 @@ Day 6: [Trash Compactor](https://adventofcode.com/2025/day/6)               | [d
 Day 7: [Laboratories](https://adventofcode.com/2025/day/7)                  | [day07.clj](src/day07) | fnil, memoize                  |                      | I smell something Lanternfishy.
 Day 8: [Playground](https://adventofcode.com/2025/day/8)                    | [day08.clj](src/day08) | hash-set, disj                 |                      | No Manhattan distance? Wow!
 Day 9: [Movie Theater](https://adventofcode.com/2025/day/9)                 | [day09.clj](src/day09) | every?, pmap, ffirst           |                      | The hardest one so far.
-Day 10: [Factory](https://adventofcode.com/2025/day/10)                     | [day10.clj](src/day10) | constantly, not                |                      | Just Part 1 this time.
-Day 11: [Reactor](https://adventofcode.com/2025/day/11)                     | [day11.clj](src/day11) |                                |                      | Surprisingly easy.
+Day 10: [Factory](https://adventofcode.com/2025/day/10)                     | [day10.clj](src/day10) | constantly, cond->, keep       |                      | Divide and conquer.
+Day 11: [Reactor](https://adventofcode.com/2025/day/11)                     | [day11.clj](src/day11) | memoize, zero?                 |                      | Surprisingly easy.
 Day 12: [Christmas Tree Farm](https://adventofcode.com/2025/day/12)         | [day12.clj](src/day12) |                                |                      | The most disappointing AoC task ever?
