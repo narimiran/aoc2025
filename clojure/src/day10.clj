@@ -3,7 +3,7 @@
   {:title "Factory"
    :url "https://adventofcode.com/2025/day/10"
    :extras ""
-   :highlights "constantly, cond->, keep"
+   :highlights "keep, distinct, juxt, frequencies, group-by"
    :remark "Divide and conquer."
    :nextjournal.clerk/auto-expand-results? true
    :nextjournal.clerk/toc true}
@@ -52,7 +52,7 @@
 ;; To convert the `lights` into something we can use later, we remove the first and
 ;; the last character (`[` and `]`, respectively), and the rest we convert to
 ;; a vector where `#` gets a `true` value and `.` is `false` [2]. (It's important
-;; that it is `false` and not `nil`; can't use set `#{\#}` as a predicate.)
+;; that it is `false` and not nil`; can't use set `#{\#}` as a predicate.)
 ;;
 ;; For `joltages`, we just need to extract all integers from the last element [3].
 ;; We do the same thing for _each_ `button` [4].
@@ -123,52 +123,47 @@
 
 
 (defn press-buttons [[goal buttons _]]
-  (let [initial-lights (mapv (constantly false) goal) ; [1]
-        initial-state [initial-lights buttons 0]]     ; [2]
-    (loop [[[lights buttons presses] & states'] (list initial-state)
-           best-result 999999]
-      (cond
-        (nil? lights)   best-result             ; [3]
-        (= lights goal) (recur states' presses) ; [4]
+  (loop [[[lights buttons presses] & states'] (list [goal buttons 0])
+         best-result 999999]
+    (cond
+      (nil? lights)          best-result              ; [1]
+      (every? false? lights) (recur states' presses)  ; [2]
 
-        (and (seq buttons)                      ; [5]
-             (< (inc presses) best-result))     ; [6]
-        (let [[button & buttons'] buttons
-              lights'             (toggle lights button)]
-          (recur (conj states'
-                       [lights' buttons' (inc presses)] ; [7]
-                       [lights  buttons' presses])      ; [8]
-                 best-result))
+      (and (seq buttons)                              ; [3]
+           (< (inc presses) best-result))             ; [4]
+      (let [[button & buttons'] buttons
+            lights'             (toggle lights button)]
+        (recur (conj states'
+                     [lights' buttons' (inc presses)] ; [5]
+                     [lights  buttons' presses])      ; [6]
+               best-result))
 
-        :else           (recur states' best-result))))) ; [9]
+      :else (recur states' best-result))))            ; [7]
 
 
-;; When we start, all lights are off. One way to create a vector of initial
-;; lights with the same size as our `goal` is to use the
-;; [`constantly` function](https://clojuredocs.org/clojure.core/constantly)
-;; which returns a function which will always return the provided argument [1].\
-;; The initial state consists of all lights turned off, all buttons ready
-;; to be pressed, and zero button presses so far [2].
+;; Since going from lights off to lights on is the same as going from lights
+;; on to lights off, we will start with the `goal` and stop when we reach
+;; a state with all lights turned off.
 ;;
-;; We will exit the loop when there are no more states to explore [3].
+;; We will exit the loop when there are no more states to explore [1].
 ;;
-;; If the current `lights` match the `goal` we're trying to achieve, we've
+;; If the current `lights` are all off, we've
 ;; found a new best result (we will see in a minute why this is true), and
 ;; we continue exploring the rest of the states in attempt to find an even
-;; better result [4].
+;; better result [2].
 ;;
-;; If there are still `buttons` to press [5] and if there's a chance we
-;; could improve the best result so far [6], we have two options:
-;; - [7] We press the current `button`, toggling lights to their new state
+;; If there are still `buttons` to press [3] and if there's a chance we
+;; could improve the best result so far [4], we have two options:
+;; - [5] We press the current `button`, toggling lights to their new state
 ;;   (`lights'`).
-;; - [8] We skip pressing the current button. The `lights` remain as they
+;; - [6] We skip pressing the current button. The `lights` remain as they
 ;;   were. (Notice the lack of `'`.)
 ;;
 ;; We add both those scenarios to the `states'` we wish to explore next with
 ;; the remaining `buttons'`.
 ;;
 ;; Otherwise, we explore the remaining `states'` to see if we can improve
-;; the best result [9].
+;; the best result [7].
 
 (press-buttons (first example-data))
 
@@ -197,108 +192,143 @@
 ;;
 ;; Thanks to [this brilliant insight](https://old.reddit.com/r/adventofcode/comments/1pk87hl/2025_day_10_part_2_bifurcate_your_way_to_victory/),
 ;; there is a relatively easy solution for Part 2, which we will implement here.\
-;; I wont't repeat in detail what was said in the linked post, you should
+;; I won't repeat in detail what was said in the linked post, you should
 ;; definitely read it.
 ;;
-;; For this to work, we need to modify the `press-buttons` function to not
-;; just search for the best best result, but to give _all_ button `presses`
-;; which would give the `goal` state.
+;; We're not interested anymore in just the best score with the fewest presses
+;; for a goal we want to achieve: for each machine we will calculate _all_
+;; possible subsets of (not) pressing each button:
 
-(def press-buttons'
-  (memoize
-   (fn [buttons goal]
-     (let [initial-lights (mapv (constantly false) goal)
-           initial-state [initial-lights buttons []]]        ; [1]
-       (loop [[[lights buttons presses] & states'] (list initial-state)
-              results #{}]                                   ; [2]
-         (let [results' (cond-> results
-                          (= lights goal) (conj presses))]   ; [3]
-           (cond
-             (nil? lights) results ; [4]
+(defn all-subsets [buttons]
+  (loop [subsets [[]]
+         [button & buttons'] buttons]
+    (if (nil? button)
+      subsets
+      (let [subsets' (map #(conj % button) subsets)]
+        (recur (into subsets subsets') buttons')))))
 
-             (seq buttons)         ; [5]
-             (let [[button & buttons'] buttons
-                   lights'             (toggle lights button)
-                   presses'            (conj presses button)]
-               (recur (conj states'
-                            [lights' buttons' presses']
-                            [lights  buttons' presses])
-                      results'))
-
-             :else (recur states' results'))))))))
+(all-subsets [1 2 3])
 
 
-;; We now track not just the number of button presses, but we need to know
-;; exactly what buttons were pressed [1].\
-;; The `results` will be a set of all button-pressing combinations which
-;; give us the wanted solution [2]. When we weach the `goal`, we add the
-;; current `presses` to the `results` [3].
-;; To conditionally update `results`, only if we reached the `goal`, we can
-;; use the [`cond->` macro](https://clojuredocs.org/clojure.core/cond-%3E).
+
+;; For each button-pressing combination, we want to know two things:
+;; - how much each joltage has changed
+;; - how many buttons we've pressed
 ;;
-;; The exit condition is the same as before: when there are no more states
-;; to explore [4].\
-;; The line [5] is the key difference: we're not interested in just the best
-;; result (with the fewest button presses), we will continue exploring the
-;; states for _every_ button (not) pressed.
+;; To get a vector with those things, we will have to apply two different
+;; functions to the button-combination, and for that we can use
+;; the [`juxt` function](https://clojuredocs.org/clojure.core/juxt).
+
+(def press-results (juxt (comp frequencies flatten) count))
+
+;; The first result is achieved by [`flatten`ing](https://clojuredocs.org/clojure.core/flatten)
+;; the buttons presses and then calculating the
+;; [`frequencies`](https://clojuredocs.org/clojure.core/frequencies).\
+;; The second result is just the `count` of buttons pressed.
 ;;
-;; For example, for the first line in our example:
+;; Here's an example where we press three buttons:
 
-(let [[goal buttons _] (first example-data)]
-  (press-buttons' buttons goal))
+(let [pressed-buttons [[0] [0 1] [0 1 2]]]
+  (press-results pressed-buttons))
+
+;; We get the vector with two results we wanted. The first element is a hashmap
+;; telling us how much the joltage has been change at each index:
+;; index 0 by 3, index 1 by 2, index 2 by 1.
 
 
-;; So we have a way to solve a single recursion step, and now we need
-;; to find a way to go to a new state for the next recursion step.
 
-(defn new-state [joltages presses]
-  (let [joltages' (reduce #(update %1 %2 dec) ; [1]
-                          joltages
-                          (flatten presses))] ; [2]
-    (when (not-any? neg? joltages')           ; [3]
-      [(mapv #(quot % 2) joltages')           ; [4]
-       (count presses)])))
+;; Different button combinations can produce different joltages,
+;; but the same light parity:
 
-;; For each result we will calculate the remaining `joltages'` of each light
-;; by `dec`reasing the current joltage of that light every time a button
-;; has modified it [1]. To convert a nested list of button-presses to
-;; a flat list of light-modifications, we use the
-;; [`flatten` function](https://clojuredocs.org/clojure.core/flatten) [2].
+(defn light-parity [joltages]
+  (->> joltages
+       (keep (fn [[k v]] (when (odd? v) k)))
+       set))
+
+(= (light-parity {0 3 , 1 2 , 2 1})
+   (light-parity {0 11 , 1 0 , 2 33}))
+
+
+
+;; We will [`group-by`](https://clojuredocs.org/clojure.core/group-by) the
+;; results by `light-parity`.
+
+(defn all-states [buttons]
+  (->> buttons
+       all-subsets
+       (map press-results)
+       (group-by (comp light-parity first)) ; [1]
+       (#(update-vals % distinct))))        ; [2]
+
+;; The result of `press-results` is a vector: we need its first element
+;; (joltages) to calculate `light-parity` [1].\
+;; There will be some duplicated results (we make the same joltage changes
+;; with two different combinations of buttons, with the same number of
+;; button presses), so we will keep only
+;; the [`distinct`](https://clojuredocs.org/clojure.core/distinct) values [2].
+
+
+(let [[_ buttons _] (first example-data)]
+  (all-states buttons))
+
+;; This result might look like a mess, but it is something we can work with.
+;; And we're close to the finish line.
+;;
+;; So we have a vector of initial joltages that looks like `[3 5 4 7]`
+;; and for some button combination we now have a vector with a
+;; hashmap of changed joltages and the number of button presses,
+;; like `[{1 2, 3 1, 0 2, 2 1} 3]`.
+;;
+;; We'll need to calculate a `new-state` with the remaining joltages:
+
+(defn new-state [joltages [deltas presses]]
+  (let [joltages' (reduce-kv (fn [acc idx v]
+                                (update acc idx - v)) ; [1]
+                             joltages
+                             deltas)]
+    (when (not-any? neg? joltages')                   ; [2]
+      [(mapv #(quot % 2) joltages')                   ; [3]
+       presses])))
+
+;; To calculate the remaining `joltages'` of each light at an index `idx`,
+;; we will subtract the amount we've just pressed at the same index [1].
 ;;
 ;; If any of the new light joltages is negative, it means we've reached
-;; an illegal state and we'll return `nil` [3].
-;; Otherwise, we need to know the `count` of button presses, and we
+;; an illegal state and we'll return `nil` [2].
+;; Otherwise, we still need to know the number of button `presses`, and we
 ;; prepare our next state by dividing the new joltages by two.
 ;; (Why? It is explained in the linked insight.)
 ;;
 ;; Here's an example:
 
-(let [[_ buttons joltages] (first example-data)
-      goal (mapv odd? joltages)]
-  (->> (press-buttons' buttons goal)
-       (mapv #(new-state joltages %))))
+(let [joltages [3 5 4 7]
+      results [{1 2, 3 1, 0 2, 2 1} 3]]
+  (new-state joltages results))
 
 
 
-;; Time to put it all together:
 
-(def press-buttons-2
-  (memoize
-   (fn [buttons joltages]
-     (if (every? zero? joltages) 0           ; [1]
-         (->> joltages
-              (map odd?)                     ; [2]
-              (press-buttons' buttons)       ; [3]
-              (keep #(new-state joltages %)) ; [4]
-              (map (fn [[joltages' presses]] ; [5]
-                     (+ presses
-                      (* 2 (press-buttons-2 buttons joltages')))))
-              (reduce min 100000))))))       ; [6]
+;; How do we get from the initial state to the wanted result? By using
+;; recursion and dividing the problem until we come to the end:
+
+(defn press-buttons-2 [states joltages]
+  (if (every? zero? joltages) 0                                  ; [1]
+      (let [parity (light-parity (map-indexed vector joltages))] ; [2]
+        (->> (states parity)                                     ; [3]
+             (keep #(new-state joltages %))                      ; [4]
+             (map (fn [[joltages' presses]]                      ; [5]
+                    (+ presses
+                       (* 2 (press-buttons-2 states joltages')))))
+             (reduce min 100000)))))                             ; [6]
 
 ;; If our recursion reached the state where every remaining joltage is zero,
 ;; there's no more presses to be made and we return zero [1].\
-;; Otherwise, our current `goal` is defined by parity of the current joltages [2].
-;; We press the buttons to reach that goal [3] and then use the
+;; Otherwise, we calculate the `light-parity` of the current `joltages`.
+;; That function expects a hashmap: a vector with `[index value]` pairs
+;; can disguise as one [2].
+;;
+;; We are interested only in those `states` with the current `parity` [3].
+;; For each state we calculate the `new-state` and then use the
 ;; [`keep` function](https://clojuredocs.org/clojure.core/keep) to
 ;; return only valid new states [4], as defined above.
 ;;
@@ -311,8 +341,13 @@
 ;; the states explored [6].
 
 
+
+
+
 (defn part-2 [data]
-  (aoc/sum-pmap (fn [[_ b j]] (press-buttons-2 b j)) data))
+  (aoc/sum-pmap (fn [[_ buttons joltages]]
+                  (press-buttons-2 (all-states buttons) joltages))
+                data))
 
 ;; All that is left to do is to call the above function for each row of
 ;; our input and sum the results. To do this in a bit less time, we will
@@ -328,19 +363,27 @@
 
 
 
+
+
+
+
+
+
 ;; ## Conclusion
 ;;
 ;; Part 1 was a nice and relatively easy task.
 ;;
 ;; Part 2 uses the [brilliant idea](https://old.reddit.com/r/adventofcode/comments/1pk87hl/2025_day_10_part_2_bifurcate_your_way_to_victory/)
 ;; on how to approach this task and recursively split it into smaller tasks
-;; we know how to solve (from Part 1).
+;; we know how to solve.
 ;;
 ;; Today's highlights:
-;; - `constantly`: create a function that always returns the same value
-;; - `cond->`: conditionally update an expression
 ;; - `keep`: return non-nil results of applying a function to the elements of
 ;;   a collection
+;; - `distinct`: remove duplicates in a collection
+;; - `juxt`: create a vector of applying different functions to an argument
+;; - `frequencies`: count the appearances of elements in a collection
+;; - `group-by`: group elements of a collection by the result of a funciton
 
 
 ;; ----

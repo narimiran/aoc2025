@@ -28,6 +28,6 @@ Day 6: [Trash Compactor](https://adventofcode.com/2025/day/6)               | [d
 Day 7: [Laboratories](https://adventofcode.com/2025/day/7)                  | [day07.clj](src/day07) | fnil, memoize                  |                      | I smell something Lanternfishy.
 Day 8: [Playground](https://adventofcode.com/2025/day/8)                    | [day08.clj](src/day08) | hash-set, disj                 |                      | No Manhattan distance? Wow!
 Day 9: [Movie Theater](https://adventofcode.com/2025/day/9)                 | [day09.clj](src/day09) | every?, pmap, ffirst           |                      | The hardest one so far.
-Day 10: [Factory](https://adventofcode.com/2025/day/10)                     | [day10.clj](src/day10) | constantly, cond->, keep       |                      | Divide and conquer.
+Day 10: [Factory](https://adventofcode.com/2025/day/10)                     | [day10.clj](src/day10) | keep, distinct, juxt, frequencies, group-by |         | Divide and conquer.
 Day 11: [Reactor](https://adventofcode.com/2025/day/11)                     | [day11.clj](src/day11) | memoize, zero?                 |                      | Surprisingly easy.
 Day 12: [Christmas Tree Farm](https://adventofcode.com/2025/day/12)         | [day12.clj](src/day12) |                                |                      | The most disappointing AoC task ever?
