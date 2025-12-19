@@ -2,7 +2,7 @@
 (ns day02
   {:title "Gift Shop"
    :url "https://adventofcode.com/2025/day/2"
-   :extras "optimization"
+   :extras ""
    :highlights "partition, re-matches"
    :remark "Easier than Day 1."
    :nextjournal.clerk/auto-expand-results? true
@@ -81,33 +81,41 @@
 
 ;; Now we have to check all IDs in a given range to see which ones are invalid:
 
-(defn check-range [[lo hi]]     ; [1]
-  (filter invalid-id?           ; [2]
-          (range lo (inc hi)))) ; [3]
+(defn check-range [lo hi]
+  (filter invalid-id?           ; [1]
+          (range lo (inc hi)))) ; [2]
 
-;; We're immediately destructuring our two-element list into lower and upper
-;; end of a range [1].
-;; We will go through the range of IDs and we want to keep only invalid ones [2].
+;; We will go through the range of IDs and we want to keep only invalid ones [1].
 ;; The `range` function doesn't include the upper bound, so we need to take
-;; that into an account [3].
+;; that into an account [2].
 
-(check-range [4 30])
-(check-range [998 1012])
+(check-range 4 30)
+(check-range 998 1012)
 
 
-;; Everything works correctly. The final step is to apply this to the whole
-;; list of ID ranges and take the sum of all invalid IDs.
-;;
-;; If we would use `map` for this, each range would produce its own list of
-;; invalid IDs, i.e. the result would be a nested list.
-;; Instead, just like in [Day 1](../day01), we can use `mapcat` to create a
-;; flat list of numbers we can add up to get the result we need.
+;; Our task is to add up all invalid IDs:
 
-(defn count-invalids [data check-fn]
-  (reduce + (mapcat check-fn data)))
+(defn sum-invalids [check-fn [lo hi]] ; [1]
+  (reduce + (check-fn lo hi)))
 
-(count-invalids example-data check-range)
-(count-invalids data check-range)
+;; We are passing in a `check-fn` because we now have a luxury of knowing
+;; what Part 2 brings. We have our ranges represented as a two-element list,
+;; so we will immediately destructure it [1].
+
+(sum-invalids check-range [4 30])
+
+
+;; Everything works correctly.
+;; To calculate the total sum, we need to apply the `sum-invalids` function
+;; to each range in the input, and then take a sum of the results. With the
+;; [`aoc/sum-pmap` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-sum-pmap)
+;; we can do that in parallel, to speed things up a bit.
+
+(defn total-invalids [data check-fn]
+  (aoc/sum-pmap #(sum-invalids check-fn %) data))
+
+(total-invalids example-data check-range)
+(total-invalids data check-range)
 
 ;; The first star is here!
 
@@ -167,78 +175,18 @@
 ;; That's it! All it remains is to use this new check for each number of each
 ;; range.
 
-(defn check-range-2 [[lo hi]]
+(defn check-range-2 [lo hi]
   (filter #(re-matches part-2-pattern (str %))
           (range lo (inc hi))))
 
-;; We can now pass this new function to the `count-invalids` function we've
+;; We can now pass this new function to the `total-invalids` function we've
 ;; used in Part 1, and it should produce the result for Part 2.
 
-(count-invalids example-data check-range-2)
-(count-invalids data check-range-2)
+(total-invalids example-data check-range-2)
+(total-invalids data check-range-2)
 
 ;; Solved!
 
-
-
-
-
-
-
-;; ## Faster Part 1
-;;
-;; We're not chasing speed here, but let's see if there is some low-hanging
-;; fruit.
-;;
-;; The first thing that comes to mind is that if an ID has odd number of digits,
-;; it can't be invalid as it can't be divided in two equal halves.
-;; Moreover, if a whole range consists just of IDs with odd number of digits,
-;; the whole range can't contain any invalid IDs, i.e. we can immediately
-;; dismiss it.
-
-(defn faster-check [[lo hi]]
-  (when-not (and (odd? (count (str lo)))  ; [1]
-                 (odd? (count (str hi))))
-    (check-range [lo hi])))
-
-;; Before we use the original `check-range` function, we'll have a condition [1]:
-;; we'll proceed to check the invalid IDs only for the ranges with at
-;; least some IDs with even number of digits.
-
-(= (count-invalids data check-range)
-   (count-invalids data faster-check))
-
-;; It's always a good idea to check if the improved solution still produces
-;; the correct result. Speaking from the experience :') .
-;;
-;; Now, lets's see if this is any faster than the original solution.
-;; To produce meaningful results, we'll use the
-;; [`criterium` library](https://github.com/hugoduncan/criterium).
-;;
-;; ```clj
-;; (require '[criterium.core :as c])
-;;
-;; (c/quick-bench (count-invalids data check-range))
-;;
-;; Evaluation count : 6 in 6 samples of 1 calls.
-;;              Execution time mean : 115.755342 ms
-;;     Execution time std-deviation : 12.036792 ms
-;;    Execution time lower quantile : 107.553942 ms ( 2.5%)
-;;    Execution time upper quantile : 131.145882 ms (97.5%)
-;;                    Overhead used : 1.820347 ns
-;;
-;;
-;; (c/quick-bench (count-invalids data faster-check))
-;;
-;; Evaluation count : 12 in 6 samples of 2 calls.
-;;              Execution time mean : 64.631726 ms
-;;     Execution time std-deviation : 6.484634 ms
-;;    Execution time lower quantile : 59.920825 ms ( 2.5%)
-;;    Execution time upper quantile : 73.335817 ms (97.5%)
-;;                    Overhead used : 1.820347 ns
-;; ```
-;;
-;; Nice 2x speedup without even trying too much, just one condition added.
 
 
 
@@ -270,5 +218,5 @@
 ^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
 (defn -main [input]
   (let [data (parse-data input)]
-    [(count-invalids data faster-check)
-     (count-invalids data check-range-2)]))
+    [(total-invalids data check-range)
+     (total-invalids data check-range-2)]))
