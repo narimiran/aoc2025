@@ -96,21 +96,16 @@
 ;; polygon line `[p1 p2]` is going through it.
 
 (defn not-slicing? [[p1x p1y] [p2x p2y] [r1x r1y] [r2x r2y]]
-  (let [[px-min px-max] (sort [p1x p2x])
-        [py-min py-max] (sort [p1y p2y])
-        [rx-min rx-max] (sort [r1x r2x])
-        [ry-min ry-max] (sort [r1y r2y])]
-    (or (<= px-max rx-min)    ; polygon line completely on the left
-        (<= rx-max px-min)    ; polygon line completely on the right
-        (<= py-max ry-min)    ; polygon line completely above
-        (<= ry-max py-min)))) ; polygon line completely below
-
+  (or (<= (max p1x p2x) (min r1x r2x))   ; polygon line completely on the left
+      (<= (max r1x r2x) (min p1x p2x))   ; polygon line completely on the right
+      (<= (max p1y p2y) (min r1y r2y))   ; polygon line completely above
+      (<= (max r1y r2y) (min p1y p2y)))) ; polygon line completely below
 
 ;; If a rectangle is `inside?` of a polygon, that means that
 ;; [`every?`](https://clojuredocs.org/clojure.core/every_q)
 ;; line of a polygon is `not-slicing?` it.
 
-(defn- inside? [polygon-lines r1 r2]
+(defn inside? [polygon-lines r1 r2]
   (every? (fn [[p1 p2]]
             (not-slicing? p1 p2 r1 r2))
           polygon-lines))
@@ -118,7 +113,7 @@
 
 ;; And that's it. That's all we need to solve the problem.
 
-(defn- solve [polygon]
+(defn solve [polygon]
   (let [rectangles (largest-rectangles polygon)
         polygon' (conj polygon (first polygon))              ; [1]
         polygon-lines (map vector polygon' (rest polygon'))] ; [2]
@@ -133,7 +128,7 @@
 ;; we can create all `polygon-lines` [2].
 ;;
 ;; We create the sorted list of `rectangles`.
-;; The largest rectangle is the first element of it. It's area
+;; The largest rectangle is the first element of it. Its area
 ;; is the first element of that first element. To get that (which is the
 ;; solution for Part 1) we can use the
 ;; [`ffirst` function](https://clojuredocs.org/clojure.core/ffirst) [3].
