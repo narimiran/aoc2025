@@ -202,7 +202,7 @@ L82")
 ;; immediate values. Just what we need here.
 ;;
 ;; The only thing remaining is to count how many times we've seen zero.\
-;; I'm doogfeeding by using the
+;; I'm dogfeeding by using the
 ;; [`aoc/count-if` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-count-if),
 ;; but the same can be achieved by using `filter` and then `count`.
 

@@ -9,7 +9,7 @@ Hello there!
 - Source code of these notebooks is [available here](https://github.com/narimiran/aoc2025),
   where you can also find links to the repos with my solutions of previous AoC
   instances.
-  You'll find my solutions in Clojure, Elixir, Nim, OCaml, Python, Racket;
+  You'll find my solutions in Clojure, Common Lisp, Elixir, Nim, OCaml, Python, Racket;
   often multiple languages per each AoC year.
 
 
