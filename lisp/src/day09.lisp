@@ -28,8 +28,8 @@
   (let ((result '()))
     (loop for a across pts do
       (loop for b across pts
-            while (not (eq a b))
             for box = (create-box a b)
+            while (not (eq a b))
             do (push (list (area box) box) result)))
     (sort result #'> :key #'first)))
 

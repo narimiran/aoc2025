@@ -5,8 +5,8 @@
   (with-open-file (input-stream (aoc:input-path filename))
     (loop with columns = nil
           for line = (read-line input-stream nil nil)
-          while line
           for tokens = (cl-ppcre:all-matches-as-strings "\\S+" line)
+          while line
           do (setf columns
                    (if (null columns)
                        (mapcar #'list tokens)

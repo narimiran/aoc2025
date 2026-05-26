@@ -5,8 +5,8 @@
   (let ((graph (make-hash-table :test #'equal)))
     (with-open-file (input-stream (aoc:input-path filename))
       (loop for line = (read-line input-stream nil nil)
-            while line
             for nodes = (cl-ppcre:split "\\W+" line)
+            while line
             do (setf (gethash (first nodes) graph)
                      (rest nodes))))
     graph))

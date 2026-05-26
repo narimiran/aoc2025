@@ -24,8 +24,8 @@
   (loop with count = 0
         with ranges_ = ranges
         for ingredient in ingredients
-        do (loop while ranges_
-                 for (lo . hi) = (first ranges_)
+        do (loop for (lo . hi) = (first ranges_)
+                 while ranges_
                  do (cond
                       ((< ingredient lo) (return))
                       ((<= lo ingredient hi)
