@@ -103,13 +103,7 @@
 ;; We can use now use this function to `filter` all rolls:
 
 (defn accessible [rolls]
-  (->> rolls
-       (filter #(accessible-roll? rolls %))
-       set)) ; [1]
-
-;; We started with `rolls`, which is a `set`.
-;; The result of `filter` is a sequence, and we'll convert it back to set,
-;; for convenience [1].
+  (filter #(accessible-roll? rolls %) rolls))
 
 
 ;; Our Part 1 task is to count all accessible rolls, and our code reads
