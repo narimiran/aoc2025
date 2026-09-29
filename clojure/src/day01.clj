@@ -99,21 +99,25 @@ L82")
 ;; after a rotation.
 
 (defn part-1 [data]
-  (-> (reduce (fn [[zeros start] n]
-                (let [end (mod (+ start n) size)]     ; [1]
-                  [(if (zero? end) (inc zeros) zeros) ; [2]
-                   end]))
-              [0 start]                               ; [3]
-              data)
-      first))                                         ; [4]
+  (->> (reductions (fn [start n]             ; [1]
+                     (mod (+ start n) size)) ; [2]
+                   start
+                   data)
+       (aoc/count-if zero?)))                ; [3]
 
-;; We will `reduce` through the input data.\
-;; We need to track two values [3]: the number of times we reached zero, and
-;; the current value on the dial.
-;; We need to stay in the 0-99 range of the dial [1] and if result of a rotation
-;; is zero, we increase the count [2].\
-;; The `reduce` function will return both the number of times we've seen
-;; zero and the final value on the dial. We're interested only in the former [4].
+;; If we wanted to know what is the final value on the dial, we would use the
+;; `reduce` function, but here we want to know the values after each rotation.
+;; We can do that with the
+;; [`reductions` function](https://clojuredocs.org/clojure.core/reductions) [1].
+;; This function, unlike `reduce` which produces just the final value, keeps all
+;; immediate values. Just what we need here.
+;;
+;; We need to stay in the 0-99 range of the dial [2].\
+;; The only thing remaining is to count how many times we've seen zero.
+;; I'm dogfeeding by using the
+;; [`aoc/count-if` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-count-if) [3],
+;; but the same can be achieved by using `filter` and then `count`.
+
 
 (part-1 example-data)
 (part-1 data)
@@ -176,7 +180,7 @@ L82")
 
 ;; ### Step-by-step solution
 ;;
-;; This is a simpler solution with a smaller (but still non-zero :')) possibility of
+;; This is a simpler solution with a smaller possibility of
 ;; hitting some edge case, but I initially opted for the solution written above.
 ;; (And had 4 wrong answers in the process. But don't tell anybody.)
 ;;
@@ -195,24 +199,11 @@ L82")
 (convert-data [-3 2 -1 4])
 
 
-
-;; With the data converted into the list of single steps, we can now make each step
-;; with the [`reductions` function](https://clojuredocs.org/clojure.core/reductions).
-;; This function, unlike `reduce` which produces just the final value, keeps all
-;; immediate values. Just what we need here.
-;;
-;; The only thing remaining is to count how many times we've seen zero.\
-;; I'm dogfeeding by using the
-;; [`aoc/count-if` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-count-if),
-;; but the same can be achieved by using `filter` and then `count`.
+;; Now, with the step-by-step movements, we can use our solution for part 1
+;; to solve part 2:
 
 (defn part-2-simpler [data]
-  (->> data
-       convert-data
-       (reductions (fn [acc n]
-                     (mod (+ acc n) size))
-                   start)
-       (aoc/count-if zero?)))
+  (part-1 (convert-data data)))
 
 (part-2-simpler example-data)
 (part-2-simpler data)
@@ -235,12 +226,12 @@ L82")
 ;;
 ;; (c/quick-bench (part-2 data))
 ;;
-;; Evaluation count : 4788 in 6 samples of 798 calls.
-;;              Execution time mean : 137.994088 µs
-;;     Execution time std-deviation : 16.934511 µs
-;;    Execution time lower quantile : 126.338762 µs ( 2.5%)
-;;    Execution time upper quantile : 163.531903 µs (97.5%)
-;;                    Overhead used : 1.834727 ns
+;; Evaluation count : 2958 in 6 samples of 493 calls.
+;;              Execution time mean : 290.680576 µs
+;;     Execution time std-deviation : 161.535181 µs
+;;    Execution time lower quantile : 204.303162 µs ( 2.5%)
+;;    Execution time upper quantile : 501.907167 µs (97.5%)
+;;                    Overhead used : 1.832958 ns)
 ;;
 ;;
 ;; (c/quick-bench (part-2-simpler data))
@@ -253,12 +244,9 @@ L82")
 ;;                    Overhead used : 1.834727 ns)
 ;; ```
 ;;
-;; Even though all turns are small (smaller than 1000), there is ~500x
+;; Even though all turns are small (smaller than 1000), there is ~250x
 ;; performance difference between two solutions.
 ;; To be honest, I didn't expect such a large difference.
-;;
-;; Even if we `convert-data` beforehand (so we don't measure it), the
-;; difference is still ~300x.
 
 
 
@@ -267,10 +255,8 @@ L82")
 
 ;; ## Both parts at once
 ;;
-;; If we take a look and compare our `part-1` and `part-2` functions, we'll
-;; notice they are basically the same, effectively only one line
-;; (how to count zeros) is different.
-;; Let's make a function which solves both parts at once:
+;; We can use the idea from the initial `part-2` function to solve both
+;; parts at once:
 
 (defn both-parts [data]
   (-> (reduce (fn [[start pt-1 pt-2] n]
