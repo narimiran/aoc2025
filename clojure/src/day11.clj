@@ -46,10 +46,10 @@ iii: out")
 
 
 (defn build-graph [lines]
-  (reduce (fn [acc [start & ends]]
-            (assoc acc start ends))
-          {}
-          lines))
+  (into {}
+        (map (fn [[start & ends]]
+               [start ends]))
+        lines))
 
 (defn parse-data [input]
   (-> input
