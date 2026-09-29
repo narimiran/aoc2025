@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day08
   {:title "Playground"
    :url "https://adventofcode.com/2025/day/8"
    :extras ""
    :highlights "hash-set, disj"
-   :remark "No Manhattan distance? Wow!"
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "No Manhattan distance? Wow!"}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -50,7 +48,6 @@
 
 (defn parse-data [input]
   (aoc/parse-lines input :ints))
-
 
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 8)))
@@ -255,15 +252,15 @@
 ;; - `disj`: remove elements from a set
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day07)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day08.clj)
-;; | [Next solution >](../day09)
+;; [< Previous solution](day07.html)
+;; | [Index](index.html)
+;; | [Next solution >](day09.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     (solve data 1000)))

@@ -36,21 +36,17 @@ jobs:
           key: cljdeps-${{ hashFiles('deps.edn') }}
           restore-keys: cljdeps-
 
-      - name: Clerk Cache
-        uses: actions/cache@v6
-        with:
-          path: .cache
-          key: ${{ runner.os }}-clerk
-
-      - name: Clerk Build
+      - name: Clay Build
         working-directory: clojure
-        run: clojure -X:nextjournal/clerk :path-prefix '"public/build/${{ github.sha }}/"' :git/sha '"${{ github.sha }}"'
+        run: |
+          clojure -M:clay index.clj -r
+          clojure -M:clay -r
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
           # Upload entire repository
-          path: 'clojure/public/build'
+          path: 'clojure/public'
 
   deploy:
     environment:

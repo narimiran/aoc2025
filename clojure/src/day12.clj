@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day12
   {:title "Christmas Tree Farm"
    :url "https://adventofcode.com/2025/day/12"
    :extras ""
    :highlights ""
-   :remark "The most disappointing AoC task ever?"
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "The most disappointing AoC task ever?"}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -67,6 +65,7 @@
 (defn parse-data [input]
   (last (aoc/parse-paragraphs input :ints)))
 
+(parse-data example)
 
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 12)))
@@ -90,7 +89,7 @@
 ;; a region.
 
 (defn fits? [[w h & amounts]]
-    (<= (* 9 (reduce + amounts)) (* w h)))
+  (<= (* 9 (reduce + amounts)) (* w h)))
 
 ;; And to solve the task, we just count those lines that satisfy the
 ;; above condition.
@@ -116,15 +115,15 @@
 ;; No highlights today.
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day11)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day12.clj)
-;; | [Next solution >](../day13)
+;; [< Previous solution](day11.html)
+;; | [Index](index.html)
+;; | [Next solution >](day13.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     (solve data)))

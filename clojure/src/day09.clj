@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day09
   {:title "Movie Theater"
    :url "https://adventofcode.com/2025/day/9"
    :extras ""
    :highlights "every?, pmap, ffirst"
-   :remark "The hardest one so far."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "The hardest one so far."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -33,7 +31,7 @@
 ;; ## Input parsing
 ;;
 ;; Each line represents x and y coordinates of one tile. We've already
-;; parsed stuff like that [yesterday](../day08) so nothing new here:
+;; parsed stuff like that [yesterday](day08.html) so nothing new here:
 
 (defn parse-data [input]
   (aoc/parse-lines input :ints))
@@ -176,15 +174,15 @@
 ;; - `ffirst`: first element of first element
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day08)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day09.clj)
-;; | [Next solution >](../day10)
+;; [< Previous solution](day08.html)
+;; | [Index](index.html)
+;; | [Next solution >](day10.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     (solve data)))

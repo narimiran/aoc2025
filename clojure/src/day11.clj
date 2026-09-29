@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day11
   {:title "Reactor"
    :url "https://adventofcode.com/2025/day/11"
    :extras ""
    :highlights "memoize, zero?"
-   :remark "Surprisingly easy."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "Surprisingly easy."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -65,6 +63,7 @@ iii: out")
 ;; Since the graph is acyclic, creating a hashmap representation of it is
 ;; straightforward [2].
 
+(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 11)))
 
@@ -95,7 +94,7 @@ iii: out")
 ;; visit points `C` and `D` multiple times. And we already know from the first
 ;; visit it will be a successful path. We will use our friend
 ;; [`memoize`](https://clojuredocs.org/clojure.core/memoize) that we met
-;; in the [Day 7 solution](../day07). [1]\
+;; in the [Day 7 solution](day07.html). [1]\
 ;; For Part 1 we could ignore this inefficiency of these multiple visits,
 ;; but for Part 2 it is crucial to memoize.
 ;;
@@ -196,15 +195,15 @@ hhh: out")
 ;;   provided a number
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day10)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day11.clj)
-;; | [Next solution >](../day12)
+;; [< Previous solution](day10.html)
+;; | [Index](index.html)
+;; | [Next solution >](day12.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)

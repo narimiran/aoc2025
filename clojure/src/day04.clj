@@ -1,17 +1,15 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day04
   {:title "Printing Department"
    :url "https://adventofcode.com/2025/day/4"
    :extras "animation"
    :highlights "grid helpers"
-   :remark "The easiest one this year."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "The easiest one this year."}
   (:require [aoc-utils.core :as aoc]
             [clojure.set :as set]
             [quil.core :as q]
             [quil.middleware :as m]
-            [nextjournal.clerk :as clerk]))
+            [scicloj.kindly.v4.kind :as kind]))
 
 
 
@@ -130,7 +128,7 @@
 ;; `accessible`. We need to repeat the process until we cannot remove any more
 ;; rolls.
 ;;
-;; Recursion time! Unlike [yesterday](../day03) when we used `loop` for recursion,
+;; Recursion time! Unlike [yesterday](day03.html) when we used `loop` for recursion,
 ;; today we'll do it by repeatedly calling a function.
 
 (defn part-2
@@ -172,7 +170,6 @@
 ;; I won't be explaining what each part of the code does, but here it is in
 ;; its entirety so you can experiment with it yourself.
 
-{:nextjournal.clerk/visibility {:result :hide}}
 
 (defn build-states [rolls]
   (loop [accessible-states [[]]
@@ -222,9 +219,8 @@
 ;;
 ;; And the result is:
 
-^{:nextjournal.clerk/visibility {:code :hide :result :show}}
-
-(clerk/html
+(kind/hiccup
+ ^:kindly/hide-code
  [:video {:controls true}
   [:source {:src "https://i.imgur.com/UKHxdoR.mp4"
             :type "video/mp4"}]
@@ -250,15 +246,15 @@
 ;; - `aoc/neighbours-8`: get 8 neighbours of a point which satisfy a predicate
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day03)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day04.clj)
-;; | [Next solution >](../day05)
+;; [< Previous solution](day03.html)
+;; | [Index](index.html)
+;; | [Next solution >](day05.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)

@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day07
   {:title "Laboratories"
    :url "https://adventofcode.com/2025/day/7"
    :extras ""
    :highlights "fnil, memoize"
-   :remark "I smell something Lanternfishy."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "I smell something Lanternfishy."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -59,6 +57,7 @@
 ;;
 ;; The returned hashmap contains various keys:
 
+(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 7)))
 
@@ -72,14 +71,13 @@
 ;;
 ;; There are three ways a beam can move: straight down, down-left or down-right:
 
-{:nextjournal.clerk/visibility {:code :show :result :hide}}
 (defn down [x y] [x (inc y)])
 (defn dl [x y] [(dec x) (inc y)])
 (defn dr [x y] [(inc x) (inc y)])
 
 ;; We can now start from the top and count the splits along the way:
 
-{:nextjournal.clerk/visibility {:code :show :result :show}}
+
 (defn part-1 [{:keys [start splits height]}] ; [1]
   (loop [queue (conj aoc/empty-queue start)  ; [2]
          seen  #{}
@@ -247,15 +245,15 @@
 ;; - `memoize`: cache the results of a function
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day06)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day07.clj)
-;; | [Next solution >](../day08)
+;; [< Previous solution](day06.html)
+;; | [Index](index.html)
+;; | [Next solution >](day08.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)

@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day03
   {:title "Lobby"
    :url "https://adventofcode.com/2025/day/3"
    :extras ""
    :highlights "reduce-kv, reduced, partial"
-   :remark "Recursion made easy."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "Recursion made easy."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -40,6 +38,8 @@
 
 (defn parse-data [input]
   (aoc/parse-lines input :digits))
+
+(parse-data example)
 
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 3)))
@@ -219,15 +219,15 @@
 ;; - `partial`: partial application of a function
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day02)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day03.clj)
-;; | [Next solution >](../day04)
+;; [< Previous solution](day02.html)
+;; | [Index](index.html)
+;; | [Next solution >](day04.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)

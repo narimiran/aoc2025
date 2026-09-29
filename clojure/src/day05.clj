@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day05
   {:title "Cafeteria"
    :url "https://adventofcode.com/2025/day/5"
    :extras ""
    :highlights "some, sort"
-   :remark "Work sorter, not harder."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "Work sorter, not harder."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -42,7 +40,7 @@
 
 ;; ## Input parsing
 ;;
-;; We've already dealt with ranges of natural numbers in [Day 2](../day02), so
+;; We've already dealt with ranges of natural numbers in [Day 2](day02.html), so
 ;; we'll once again use the `:nats` parameter to extract them.\
 ;; This time in our input we have two paragraphs, separated by a blank line.
 ;; This kind of input happens frequently so we came prepared for it:
@@ -58,14 +56,13 @@
 ;; Since `:nats` will extract _all_ integers on a line into a list, for the
 ;; second paragraph, where there is just one number, we immediately extract it.
 
-
-(def example-data (parse-data example))
-(def data (parse-data (aoc/read-input 5)))
-
+(parse-data example)
 
 ;; This looks exactly what we need. Notice the huge numbers in the real input.
 
 
+(def example-data (parse-data example))
+(def data (parse-data (aoc/read-input 5)))
 
 
 
@@ -191,15 +188,15 @@
 ;; - `sort`: sort a collection. Shocking, I know.
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day04)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day05.clj)
-;; | [Next solution >](../day06)
+;; [< Previous solution](day04.html)
+;; | [Index](index.html)
+;; | [Next solution >](day06.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)

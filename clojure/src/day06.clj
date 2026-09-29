@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day06
   {:title "Trash Compactor"
    :url "https://adventofcode.com/2025/day/6"
    :extras ""
    :highlights "comp, partition-by, take-nth"
-   :remark "Advent of Parsing."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "Advent of Parsing."}
   (:require [aoc-utils.core :as aoc]
             [clojure.string :as str]))
 
@@ -192,14 +190,13 @@
 
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day05)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day06.clj)
-;; | [Next solution >](../day07)
+;; [< Previous solution](day05.html)
+;; | [Index](index.html)
+;; | [Next solution >](day07.html)
 
 
-
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (solve input))

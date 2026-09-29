@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day02
   {:title "Gift Shop"
    :url "https://adventofcode.com/2025/day/2"
    :extras ""
    :highlights "partition, re-matches"
-   :remark "Easier than Day 1."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "Easier than Day 1."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -52,6 +50,7 @@
   (->> (aoc/parse-input input :nats)
        (partition 2)))
 
+(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 2)))
 
@@ -207,15 +206,15 @@
 ;; - `re-matches`: check if a _whole_ string matches a regex pattern
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day01)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day02.clj)
-;; | [Next solution >](../day03)
+;; [< Previous solution](day01.html)
+;; | [Index](index.html)
+;; | [Next solution >](day03.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(total-invalids data check-range)

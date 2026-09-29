@@ -1,0 +1,7 @@
+{:base-source-path "src"
+ :title "narimiran's AoC 2025"
+ :remote-repo {:git-url "https://github.com/narimiran/aoc2025"
+               :branch "main"}
+ :hide-ui-header true
+ :live-reload false
+ :base-target-path "public"}

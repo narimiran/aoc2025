@@ -2,16 +2,13 @@
  :deps  {org.clojure/clojure            {:mvn/version "1.12.5"}
          com.github.narimiran/aoc-utils {:git/tag "v0.9.3" :git/sha "e951804"}
          criterium/criterium            {:mvn/version "0.4.6"}
-         io.github.nextjournal/clerk    {:mvn/version "0.18.1158"}
+         org.scicloj/clay               {:mvn/version "2.0.23"}
          quil/quil                      {:mvn/version "4.3.1563"}}
  :aliases
  {:profile {:jvm-opts   ["-Djdk.attach.allowAttachSelf"]
             :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.7.0"}
                          com.taoensso/tufte                       {:mvn/version "3.0.2"}}}
-  :nextjournal/clerk {:exec-fn   nextjournal.clerk/build!
-                      :exec-args {:paths ["index.md"
-                                          "src/day*.clj"]
-                                  :index "index.md"}}
+  :clay    {:main-opts ["-m" "scicloj.clay.v2.main"]}
   :test    {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
             :main-opts  ["-m" "kaocha.runner"]}
   :splint  {:extra-deps {io.github.noahtheduke/splint {:mvn/version "1.24.0"}}

@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day01
   {:title "Secret Entrance"
    :url "https://adventofcode.com/2025/day/1"
    :extras "bench"
    :highlights "subs, mapcat, reductions"
-   :remark "Harder than expected for day 1."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "Harder than expected for day 1."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -78,7 +76,7 @@ L82")
   (aoc/parse-lines input parse-line))
 
 ;; We can now parse both the example and our real input:
-
+(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 1)))
 
@@ -293,14 +291,14 @@ L82")
 ;; - `reductions`: keep immediate values of a reduction
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day01.clj)
-;; | [Next solution >](../day02)
+;; [Index](index.html)
+;; | [Next solution >](day02.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     (both-parts data)))

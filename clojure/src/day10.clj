@@ -1,12 +1,10 @@
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (ns day10
   {:title "Factory"
    :url "https://adventofcode.com/2025/day/10"
    :extras ""
    :highlights "keep, distinct, juxt, frequencies, group-by"
-   :remark "Divide and conquer."
-   :nextjournal.clerk/auto-expand-results? true
-   :nextjournal.clerk/toc true}
+   :remark "Divide and conquer."}
   (:require [aoc-utils.core :as aoc]))
 
 
@@ -71,7 +69,6 @@
 
 (def example-data (parse-data example))
 
-^{:nextjournal.clerk/auto-expand-results? false}
 (def data (parse-data (aoc/read-input 10)))
 
 
@@ -384,15 +381,15 @@
 ;; - `group-by`: group elements of a collection by the result of a funciton
 
 
-;; ----
+;; &nbsp;
 ;;
-;; [< Previous solution](../day09)
-;; | [Source code](https://github.com/narimiran/aoc2025/blob/main/clojure/src/day10.clj)
-;; | [Next solution >](../day11)
+;; [< Previous solution](day09.html)
+;; | [Index](index.html)
+;; | [Next solution >](day11.html)
 
 
 
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)
