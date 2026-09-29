@@ -1,22 +1,22 @@
 {:paths ["src" "tests" "dev"]
- :deps  {org.clojure/clojure            {:mvn/version "1.12.3"}
+ :deps  {org.clojure/clojure            {:mvn/version "1.12.5"}
          com.github.narimiran/aoc-utils {:git/tag "v0.9.3" :git/sha "e951804"}
          criterium/criterium            {:mvn/version "0.4.6"}
          io.github.nextjournal/clerk    {:mvn/version "0.18.1158"}
          quil/quil                      {:mvn/version "4.3.1563"}}
  :aliases
  {:profile {:jvm-opts   ["-Djdk.attach.allowAttachSelf"]
-            :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.6.2"}
-                         com.taoensso/tufte                       {:mvn/version "3.0.0"}}}
+            :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.7.0"}
+                         com.taoensso/tufte                       {:mvn/version "3.0.2"}}}
   :nextjournal/clerk {:exec-fn   nextjournal.clerk/build!
                       :exec-args {:paths ["index.md"
                                           "src/day*.clj"]
                                   :index "index.md"}}
   :test    {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
             :main-opts  ["-m" "kaocha.runner"]}
-  :splint  {:extra-deps {io.github.noahtheduke/splint {:mvn/version "1.22.0"}}
+  :splint  {:extra-deps {io.github.noahtheduke/splint {:mvn/version "1.24.0"}}
             :main-opts  ["-m" "noahtheduke.splint"]}
-  :debug   {:extra-deps {com.github.flow-storm/clojure        {:mvn/version "1.12.3-4"}
+  :debug   {:extra-deps {com.github.flow-storm/clojure        {:mvn/version "1.12.5"}
                          com.github.flow-storm/flow-storm-dbg {:mvn/version "4.5.9"}}
             :jvm-opts   ["-Dclojure.storm.instrumentEnable=true"
                          "-Dclojure.storm.instrumentOnlyPrefixes=aoc,day"
