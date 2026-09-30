@@ -10,7 +10,7 @@
 
 
 
-;; # Day 10: [Factory](https://adventofcode.com/2025/day/10)
+;; # Day 10: Factory
 ;;
 ;; We're in a factory and we're given the remains of the manual for the machines
 ;; there. Each machine is on its own line in the manual, and that lines contains
@@ -71,6 +71,7 @@
 
 (def data (parse-data (aoc/read-input 10)))
 
+example-data
 
 
 
@@ -379,14 +380,6 @@
 ;; - `juxt`: create a vector of applying different functions to an argument
 ;; - `frequencies`: count the appearances of elements in a collection
 ;; - `group-by`: group elements of a collection by the result of a funciton
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day09.html)
-;; | [Index](index.html)
-;; | [Next solution >](day11.html)
-
 
 
 ^:kindly/hide-code

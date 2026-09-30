@@ -36,11 +36,12 @@ jobs:
           key: cljdeps-${{ hashFiles('deps.edn') }}
           restore-keys: cljdeps-
 
+      - name: Install Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
       - name: Clay Build
         working-directory: clojure
-        run: |
-          clojure -M:clay index.clj -r
-          clojure -M:clay -r
+        run: clojure -M:clay -r
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5

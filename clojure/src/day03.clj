@@ -10,7 +10,7 @@
 
 
 
-;; # Day 3: [Lobby](https://adventofcode.com/2025/day/3)
+;; # Day 3: Lobby
 ;;
 ;; We moved from the gift shop to a largy lobby. There is an escalator
 ;; having some power-problems we can solve.\
@@ -39,11 +39,10 @@
 (defn parse-data [input]
   (aoc/parse-lines input :digits))
 
-(parse-data example)
-
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 3)))
 
+example-data
 
 
 
@@ -217,14 +216,6 @@
 ;; - `reduce-kv`: can be used on vectors to get indices
 ;; - `reduced`: early exit from `reduce`
 ;; - `partial`: partial application of a function
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day02.html)
-;; | [Index](index.html)
-;; | [Next solution >](day04.html)
-
 
 
 ^:kindly/hide-code

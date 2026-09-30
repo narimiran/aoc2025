@@ -11,7 +11,7 @@
 
 
 
-;; # Day 6: [Trash Compactor](https://adventofcode.com/2025/day/6)
+;; # Day 6: Trash Compactor
 ;;
 ;; We fell in the kitchen and landed in garbage smasher. The only way out is
 ;; if help the youngest cephalopod with her math homework
@@ -125,7 +125,9 @@
 ;; The only thing remaining to get the numbers we need is to take every
 ;; second element of that list with the
 ;; [`take-nth` function](https://clojuredocs.org/clojure.core/take-nth) [8].
-;;
+
+(vertical-numbers example)
+
 ;; Wow, that was a lot of transformations. Are you still here?
 
 
@@ -188,13 +190,6 @@
 ;;   value
 ;; - `take-nth`: take every n-th element of a collection
 
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day05.html)
-;; | [Index](index.html)
-;; | [Next solution >](day07.html)
 
 
 ^:kindly/hide-code

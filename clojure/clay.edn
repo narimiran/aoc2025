@@ -1,7 +1,17 @@
-{:base-source-path "src"
- :title "narimiran's AoC 2025"
- :remote-repo {:git-url "https://github.com/narimiran/aoc2025"
+{:remote-repo {:git-url "https://github.com/narimiran/aoc2025"
                :branch "main"}
+ :format [:quarto :html]
+ :book {:title "narimiran's AoC 2025"}
  :hide-ui-header true
  :live-reload false
- :base-target-path "public"}
+ :base-source-path "src"
+ :source-path ["../index.clj"
+               "day01.clj" "day02.clj" "day03.clj" "day04.clj"
+               "day05.clj" "day06.clj" "day07.clj" "day08.clj"
+               "day09.clj" "day10.clj" "day11.clj" "day12.clj"]
+ :first-as-index true
+ :base-target-path "public"
+ :quarto {:format {:html {:theme :journal
+                          :number-sections false
+                          :toc-expand true
+                          :linestretch 1.6}}}}

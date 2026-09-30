@@ -10,7 +10,7 @@
 
 
 
-;; # Day 9: [Movie Theater](https://adventofcode.com/2025/day/9)
+;; # Day 9: Movie Theater
 ;;
 ;; We're in a movie theater and instead of watching Die Hard, we need to help
 ;; Elves with floor decorations. There are some red tiles at the following
@@ -38,6 +38,9 @@
 
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 9)))
+
+example-data
+
 
 
 
@@ -172,14 +175,6 @@
 ;; - `every?`: is a predicate true for every element of a collection?
 ;; - `pmap`: map in parallel
 ;; - `ffirst`: first element of first element
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day08.html)
-;; | [Index](index.html)
-;; | [Next solution >](day10.html)
-
 
 
 ^:kindly/hide-code

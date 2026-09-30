@@ -14,7 +14,7 @@
 
 
 
-;; # Day 4: [Printing Department](https://adventofcode.com/2025/day/4)
+;; # Day 4: Printing Department
 ;;
 ;; We're in the printing department and we're given a plan view of it which
 ;; looks like this:
@@ -75,7 +75,7 @@
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 4)))
 
-
+(take 10 example-data)
 
 
 
@@ -244,14 +244,6 @@
 ;; Today's highlights:
 ;; - `aoc/create-grid`: helper for tasks like this one
 ;; - `aoc/neighbours-8`: get 8 neighbours of a point which satisfy a predicate
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day03.html)
-;; | [Index](index.html)
-;; | [Next solution >](day05.html)
-
 
 
 ^:kindly/hide-code

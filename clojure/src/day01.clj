@@ -8,7 +8,8 @@
   (:require [aoc-utils.core :as aoc]))
 
 
-;; # Day 1: [Secret Entrance](https://adventofcode.com/2025/day/1)
+;; # Day 1: Secret Entrance
+;;
 ;;
 ;; Aaaand we're back!
 ;;
@@ -76,10 +77,10 @@ L82")
   (aoc/parse-lines input parse-line))
 
 ;; We can now parse both the example and our real input:
-(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 1)))
 
+example-data
 
 ;; The dial has 100 numbers on it, from 0 to 99, and it starts at number 50.
 ;; Let's define those so we don't repeat ourselves later on:
@@ -219,7 +220,7 @@ L82")
 ;; To produce meaningful results, we'll use the
 ;; [`criterium` library](https://github.com/hugoduncan/criterium).
 
-;; ```clj
+;; ```
 ;; (require '[criterium.core :as c])
 ;;
 ;; (c/quick-bench (part-2 data))
@@ -289,13 +290,6 @@ L82")
 ;; - `subs`: take a substring
 ;; - `mapcat`: flatten what would be a nested list
 ;; - `reductions`: keep immediate values of a reduction
-
-
-;; &nbsp;
-;;
-;; [Index](index.html)
-;; | [Next solution >](day02.html)
-
 
 
 ^:kindly/hide-code

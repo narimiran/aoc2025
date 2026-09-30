@@ -10,7 +10,7 @@
 
 
 
-;; # Day 7: [Laboratories](https://adventofcode.com/2025/day/7)
+;; # Day 7: Laboratories
 ;;
 ;; We're in a teleporter lab and there's a problem with a tachyon manifold,
 ;; whose diagram looks like this:
@@ -57,10 +57,10 @@
 ;;
 ;; The returned hashmap contains various keys:
 
-(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 7)))
 
+example-data
 
 
 
@@ -237,20 +237,11 @@
 ;; That's it! We survived the weekend!
 ;;
 ;; I initially solved the task with the iterative solution, and now that I've
-;; written both, I can't decide if I like the iterative or the recursive
-;; solution more.
+;; written both, I like the recursive solution more.
 ;;
 ;; Today's highlights:
 ;; - `fnil`: provide a way for a function to deal with `nil` values
 ;; - `memoize`: cache the results of a function
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day06.html)
-;; | [Index](index.html)
-;; | [Next solution >](day08.html)
-
 
 
 ^:kindly/hide-code

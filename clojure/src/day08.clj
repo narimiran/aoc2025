@@ -10,7 +10,7 @@
 
 
 
-;; # Day 8: [Playground](https://adventofcode.com/2025/day/8)
+;; # Day 8: Playground
 ;;
 ;; We use the teleporter and find ourselves in a company of Elves trying to
 ;; connect some junction boxes. We're given a list of their coordinates which
@@ -52,6 +52,7 @@
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 8)))
 
+example-data
 
 
 
@@ -250,14 +251,6 @@
 ;; Today's highlights:
 ;; - `hash-set`: create a set from the provided _elements_
 ;; - `disj`: remove elements from a set
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day07.html)
-;; | [Index](index.html)
-;; | [Next solution >](day09.html)
-
 
 
 ^:kindly/hide-code

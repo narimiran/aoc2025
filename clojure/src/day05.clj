@@ -10,7 +10,7 @@
 
 
 
-;; # Day 5: [Cafeteria](https://adventofcode.com/2025/day/5)
+;; # Day 5: Cafeteria
 ;;
 ;; We break the (fourth?) wall and reach the cafeteria. The Elves just switched
 ;; their inventory management system and now they have some problems with it.
@@ -56,14 +56,12 @@
 ;; Since `:nats` will extract _all_ integers on a line into a list, for the
 ;; second paragraph, where there is just one number, we immediately extract it.
 
-(parse-data example)
-
-;; This looks exactly what we need. Notice the huge numbers in the real input.
-
-
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 5)))
 
+example-data
+
+;; This looks exactly what we need. But beware of the huge numbers in the real input.
 
 
 
@@ -118,10 +116,10 @@
 ;; we can encounter:
 ;;
 ;; ```
-;; L------------H
-;;   L----H                       [1]
-;;           L-----H              [2a]
-;;                    L-------H   [2b]
+;; L<------------>H
+;;   L<----->H                      [1]
+;;         L<----------->H          [2a]
+;;                   L<-------->H   [2b]
 ;; ```
 ;;
 ;; When we have sorted ranges, we know that each subsequent one will start
@@ -186,14 +184,6 @@
 ;; Today's highlights:
 ;; - `some`: is there at least one element of a collection which satisfies a predicate
 ;; - `sort`: sort a collection. Shocking, I know.
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day04.html)
-;; | [Index](index.html)
-;; | [Next solution >](day06.html)
-
 
 
 ^:kindly/hide-code

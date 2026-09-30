@@ -1,5 +1,3 @@
-;; # Advent of Code 2025
-;;
 ;; Hello there!
 ;;
 ;; - New to Clojure? Here's my [Quick intro to Clojure](https://narimiran.github.io/aoc2024/clojure_intro/) notebook from last year.
@@ -14,6 +12,7 @@
 ;;
 ;;
 ;;
+;; &nbsp;
 ;;
 ;; ## AoC 2025
 ;;

@@ -10,7 +10,7 @@
 
 
 
-;; # Day 11: [Reactor](https://adventofcode.com/2025/day/11)
+;; # Day 11: Reactor
 ;;
 ;; The Elves have installed a new server rack and now need our help with
 ;; connecting some devices with cables.
@@ -63,10 +63,10 @@ iii: out")
 ;; Since the graph is acyclic, creating a hashmap representation of it is
 ;; straightforward [2].
 
-(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 11)))
 
+example-data
 
 
 
@@ -193,14 +193,6 @@ hhh: out")
 ;; - `memoize`: cache the results of a function
 ;; - `zero?`: beware, unlike `#(= 0 %)`, it throws an exception if not
 ;;   provided a number
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day10.html)
-;; | [Index](index.html)
-;; | [Next solution >](day12.html)
-
 
 
 ^:kindly/hide-code

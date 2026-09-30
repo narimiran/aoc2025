@@ -10,7 +10,7 @@
 
 
 
-;; # Day 12: [Christmas Tree Farm](https://adventofcode.com/2025/day/12)
+;; # Day 12: Christmas Tree Farm
 ;;
 ;; There are some presents to be given to young Elves and we need to find
 ;; if they fit in given regions. The situation looks like this:
@@ -65,11 +65,10 @@
 (defn parse-data [input]
   (last (aoc/parse-paragraphs input :ints)))
 
-(parse-data example)
-
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 12)))
 
+example-data
 
 
 
@@ -113,14 +112,6 @@
 ;; What a disappointing way to end what was an interesting AoC year.
 ;;
 ;; No highlights today.
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day11.html)
-;; | [Index](index.html)
-;; | [Next solution >](day13.html)
-
 
 
 ^:kindly/hide-code

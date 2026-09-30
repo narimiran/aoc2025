@@ -10,7 +10,7 @@
 
 
 
-;; # Day 2: [Gift Shop](https://adventofcode.com/2025/day/2)
+;; # Day 2: Gift Shop
 ;;
 ;; Today we're at the North Pole gift shop and we're given a list of product
 ;; IDs and we need to find invalid IDs among those.
@@ -50,9 +50,10 @@
   (->> (aoc/parse-input input :nats)
        (partition 2)))
 
-(parse-data example)
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 2)))
+
+example-data
 
 ;; We can work with this. Let's continue with our Part 1 task.
 
@@ -204,14 +205,6 @@
 ;; Today's highlights:
 ;; - `partition`: split a sequence into chunks of equal length
 ;; - `re-matches`: check if a _whole_ string matches a regex pattern
-
-
-;; &nbsp;
-;;
-;; [< Previous solution](day01.html)
-;; | [Index](index.html)
-;; | [Next solution >](day03.html)
-
 
 
 ^:kindly/hide-code
