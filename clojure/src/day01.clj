@@ -3,7 +3,7 @@
   {:title "Secret Entrance"
    :url "https://adventofcode.com/2025/day/1"
    :extras "bench"
-   :highlights "subs, mapcat, reductions"
+   :highlights "subs, reductions, mapcat"
    :remark "Harder than expected for day 1."}
   (:require [aoc-utils.core :as aoc]))
 
@@ -50,7 +50,7 @@ L82")
 
 ;; ## Input parsing
 ;;
-;; Each line of the input consits of a direction (either `L` or `R`) and
+;; Each line of the input consists of a direction (either `L` or `R`) and
 ;; a number of turns we need to take in that direction.\
 ;; Since `L` means lowering the number on the safe dial, we'll multiply
 ;; the number of turns with `-1`.
@@ -58,15 +58,19 @@ L82")
 ;; One option would be to destructure each line into `[direction & digits]`,
 ;; but then we would have to do `(apply str digits)` to concatenate them back.\
 ;; My approach is for digits we take a substring from index 1 onwards with the
-;; [`subs` function](https://clojuredocs.org/clojure.core/subs).
+;; [`subs` function](https://clojuredocs.org/clojure.core/subs), and then
+;; convert the resulting string of digits to a number with the
+;; [`parse-long` function](https://clojuredocs.org/clojure.core/parse-long).
 
 (defn parse-line [line]
   (* (if (= \L (first line)) -1 1)
      (parse-long (subs line 1))))
 
+;; Let's see if it works as expected:
+
 (parse-line "L234")
 
-;; It works correctly. Now we need to do that for every line of the input.\
+;; Now we need to do that for every line of the input.
 ;; This is what the
 ;; [`parse-lines` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-parse-lines)
 ;; from my [aoc-utils library](https://narimiran.github.io/aoc-utils/intro.html)
@@ -80,6 +84,7 @@ L82")
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 1)))
 
+;; This is how the parsed data for the example looks like:
 example-data
 
 ;; The dial has 100 numbers on it, from 0 to 99, and it starts at number 50.
@@ -96,27 +101,27 @@ example-data
 ;;
 ;; In Part 1 we need to count how many times the dial stops at the value zero
 ;; after a rotation.
-
-(defn part-1 [data]
-  (->> (reductions (fn [start n]             ; [1]
-                     (mod (+ start n) size)) ; [2]
-                   start
-                   data)
-       (aoc/count-if zero?)))                ; [3]
-
+;;
 ;; If we wanted to know what is the final value on the dial, we would use the
-;; `reduce` function, but here we want to know the values after each rotation.
+;; [`reduce` function](https://clojuredocs.org/clojure.core/reduce),
+;; but here we want to know the values after each rotation.
 ;; We can do that with the
-;; [`reductions` function](https://clojuredocs.org/clojure.core/reductions) [1].
+;; [`reductions` function](https://clojuredocs.org/clojure.core/reductions).
 ;; This function, unlike `reduce` which produces just the final value, keeps all
 ;; immediate values. Just what we need here.
-;;
-;; We need to stay in the 0-99 range of the dial [2].\
+
+(defn part-1 [data]
+  (->> data
+       (reductions (fn [position n]
+                     (mod (+ position n) size)) ; [1]
+                   start)
+       (aoc/count-if zero?)))                   ; [2]
+
+;; We need to stay in the 0-99 range of the dial, so we use `mod` [1].\
 ;; The only thing remaining is to count how many times we've seen zero.
 ;; I'm dogfeeding by using the
-;; [`aoc/count-if` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-count-if) [3],
+;; [`aoc/count-if` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-count-if) [2],
 ;; but the same can be achieved by using `filter` and then `count`.
-
 
 (part-1 example-data)
 (part-1 data)
@@ -156,16 +161,16 @@ example-data
       first))                                      ; [4]
 
 
-;; If the result of a turn (in absolute value) is higher than 100, e.g. -765, it means
-;; that we crossed zero at least 7 times [1].\
+;; If the result of a turn (in absolute value) is higher than 100, e.g. -765, it
+;; means that we crossed zero _at least_ 7 times [1].\
 ;; The condition [2] covers cases where we start from a positive starting position
 ;; (`(>= start 1)`) and we either stop at or pass through zero (`(>= 0 end)`).
 ;; If we started from a zero, we don't cross it (and we counted it already on
 ;; a previous turn).\
 ;; Our end position on the dial is always positive [3].
 ;;
-;; Once we finish rotating the dial, as in the first part, we're only interested
-;; in the number of times we've seen zero [4].
+;; Once we finish rotating the dial,  we're only interested in the number of
+;; times we've seen zero [4].
 
 (part-2 example-data)
 (part-2 data)
@@ -188,21 +193,21 @@ example-data
 ;; Here the [`mapcat` function](https://clojuredocs.org/clojure.core/mapcat) comes
 ;; handy: we create a flat list, instead of a nested one.
 
-(defn convert-data [data]
+(defn steps [data]
   (mapcat (fn [n]
             (repeat (abs n) (if (pos? n) 1 -1)))
           data))
 
 ;; This is how the converted data looks like:
 
-(convert-data [-3 2 -1 4])
+(steps [-3 2 -1 4])
 
 
-;; Now, with the step-by-step movements, we can use our solution for part 1
-;; to solve part 2:
+;; Now, with the step-by-step movements, we can use our solution for Part 1
+;; to solve Part 2:
 
 (defn part-2-simpler [data]
-  (part-1 (convert-data data)))
+  (part-1 (steps data)))
 
 (part-2-simpler example-data)
 (part-2-simpler data)
@@ -214,27 +219,32 @@ example-data
 
 ;; ### Performance comparison
 ;;
-;; Ok, the inital solution is more complicated. Is it at least faster than the
+;; Ok, the initial solution is more complicated. Is it at least faster than the
 ;; simple solution?
 ;;
 ;; To produce meaningful results, we'll use the
 ;; [`criterium` library](https://github.com/hugoduncan/criterium).
 
-;; ```
+;; ```clj
 ;; (require '[criterium.core :as c])
 ;;
 ;; (c/quick-bench (part-2 data))
+;; ```
 ;;
+;; ```
 ;; Evaluation count : 2958 in 6 samples of 493 calls.
 ;;              Execution time mean : 290.680576 µs
 ;;     Execution time std-deviation : 161.535181 µs
 ;;    Execution time lower quantile : 204.303162 µs ( 2.5%)
 ;;    Execution time upper quantile : 501.907167 µs (97.5%)
 ;;                    Overhead used : 1.832958 ns)
+;; ```
 ;;
-;;
+;; ```clj
 ;; (c/quick-bench (part-2-simpler data))
+;; ```
 ;;
+;; ```
 ;; Evaluation count : 12 in 6 samples of 2 calls.
 ;;              Execution time mean : 71.898534 ms
 ;;     Execution time std-deviation : 5.535438 ms
@@ -288,8 +298,8 @@ example-data
 ;;
 ;; Today's highlights:
 ;; - `subs`: take a substring
-;; - `mapcat`: flatten what would be a nested list
 ;; - `reductions`: keep immediate values of a reduction
+;; - `mapcat`: flatten what would be a nested list
 
 
 ^:kindly/hide-code
