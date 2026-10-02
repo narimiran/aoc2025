@@ -53,6 +53,7 @@
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 2)))
 
+;; The parsed data looks like this:
 example-data
 
 ;; We can work with this. Let's continue with our Part 1 task.
@@ -69,40 +70,42 @@ example-data
 ;; We need to find invalid IDs, which are those where the ID consists of two
 ;; identical halves, e.g. `567567` is invalid and `565656` isn't.
 
-(defn invalid-id? [id]
+(defn identical-halves? [id]
   (let [id-string (str id)
         half (/ (count id-string) 2)]
     (= (subs id-string 0 half)
        (subs id-string half))))
 
-(invalid-id? 567567)
-(invalid-id? 565656)
+(identical-halves? 567567)
+(identical-halves? 565656)
 
 
 ;; Now we have to check all IDs in a given range to see which ones are invalid:
 
-(defn check-range [lo hi]
-  (filter invalid-id?           ; [1]
+(defn check-range [invalid-fn lo hi]
+  (filter invalid-fn            ; [1]
           (range lo (inc hi)))) ; [2]
 
-;; We will go through the range of IDs and we want to keep only invalid ones [1].
+;; We will go through the range of IDs and we want to keep only those for which
+;; the `invalid-fn` returns truthy value [1].
+;; We didn't hardcode the `invalid-fn` as `identical-halves?` because we
+;; have a luxury of knowing what Part 2 brings.\
 ;; The `range` function doesn't include the upper bound, so we need to take
 ;; that into an account [2].
 
-(check-range 4 30)
-(check-range 998 1012)
+(check-range identical-halves? 4 35)
+(check-range identical-halves? 998 1012)
 
 
 ;; Our task is to add up all invalid IDs:
 
-(defn sum-invalids [check-fn [lo hi]] ; [1]
-  (reduce + (check-fn lo hi)))
+(defn sum-invalids [invalid-fn [lo hi]] ; [1]
+  (reduce + (check-range invalid-fn lo hi)))
 
-;; We are passing in a `check-fn` because we now have a luxury of knowing
-;; what Part 2 brings. We have our ranges represented as a two-element list,
-;; so we will immediately destructure it [1].
+;; We have our ranges represented as a two-element list, so we will immediately
+;; destructure it [1].
 
-(sum-invalids check-range [4 30])
+(sum-invalids identical-halves? [4 30])
 
 
 ;; Everything works correctly.
@@ -111,11 +114,11 @@ example-data
 ;; [`aoc/sum-pmap` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-sum-pmap)
 ;; we can do that in parallel, to speed things up a bit.
 
-(defn total-invalids [data check-fn]
-  (aoc/sum-pmap #(sum-invalids check-fn %) data))
+(defn total-invalids [data invalid-fn]
+  (aoc/sum-pmap #(sum-invalids invalid-fn %) data))
 
-(total-invalids example-data check-range)
-(total-invalids data check-range)
+(total-invalids example-data identical-halves?)
+(total-invalids data identical-halves?)
 
 ;; The first star is here!
 
@@ -150,7 +153,7 @@ example-data
 ;; we can use the [`re-matches` function](https://clojuredocs.org/clojure.core/re-matches)
 ;; which will return a match only if the _whole_ string matches the pattern,
 ;; compared to the [`re-find` function](https://clojuredocs.org/clojure.core/re-find)
-;; which returns a match if any _part_ of the string matches the pattern.\
+;; which returns a match if _any part_ of the string matches the pattern.\
 ;; To capture the substring, we enclose it in the parentheses: `(\d+)`.
 ;; We can now backreference this capture with `\1`.
 ;;
@@ -175,15 +178,14 @@ example-data
 ;; That's it! All it remains is to use this new check for each number of each
 ;; range.
 
-(defn check-range-2 [lo hi]
-  (filter #(re-matches part-2-pattern (str %))
-          (range lo (inc hi))))
+(defn repeated-substring? [n]
+  (re-matches part-2-pattern (str n)))
 
 ;; We can now pass this new function to the `total-invalids` function we've
 ;; used in Part 1, and it should produce the result for Part 2.
 
-(total-invalids example-data check-range-2)
-(total-invalids data check-range-2)
+(total-invalids example-data repeated-substring?)
+(total-invalids data repeated-substring?)
 
 ;; Solved!
 
@@ -210,5 +212,5 @@ example-data
 ^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
-    [(total-invalids data check-range)
-     (total-invalids data check-range-2)]))
+    [(total-invalids data identical-halves?)
+     (total-invalids data repeated-substring?)]))
