@@ -12,7 +12,7 @@
 
 ;; # Day 3: Lobby
 ;;
-;; We moved from the gift shop to a largy lobby. There is an escalator
+;; We moved from the gift shop to a large lobby. There is an escalator
 ;; having some power-problems we can solve.\
 ;; Nearby we find some batteries we can use. They look like this:
 
@@ -42,6 +42,7 @@
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 3)))
 
+;; The parsed example looks like this:
 example-data
 
 
@@ -50,7 +51,7 @@ example-data
 ;; ## Strongest battery
 ;;
 ;; Our task is to find maximum _joltage_ of each battery bank, which we get
-;; by joining (two) batteries together in reading order, without rearanging them.
+;; by joining (two) batteries together in reading order, without rearranging them.
 ;; This means we need to be careful when picking the first battery, as the
 ;; second one must come after it, i.e. we must know the index of the first
 ;; battery before searching for the second one.
@@ -61,7 +62,8 @@ example-data
 ;; The problem with this approach is that this function returns the _last_
 ;; maximal value, which will cause trouble.\
 ;; Consider these batteries: `[2 7 5 7 3]`. There are multiple maximal values,
-;; and if we would use `max-key` we would end up with `73` jolts instead of `77`.
+;; and if we would use `max-key`, it would pick the latter `7` so we would end up
+;; with `73` jolts instead of `77`.
 ;;
 ;; Another approach is to use `max` and then take `.indexOf` it,
 ;; but this would mean we would have to go through the batteries twice.
@@ -70,12 +72,12 @@ example-data
 ;; We can do it in one pass by rolling our own function:
 
 (defn strongest-battery [batteries]
-  (reduce-kv (fn [[max-idx max-v] idx v]       ; [1]
+  (reduce-kv (fn [[_ max-v :as acc] idx v]     ; [1]
                (cond
                  (= v 9)     (reduced [idx v]) ; [2]
                  (> v max-v) [idx v]           ; [3]
-                 :else       [max-idx max-v]))
-             [0 0]
+                 :else       acc))
+             [0 0]                             ; [4]
              batteries))
 
 ;; We could have converted our vector of batteries into the one with
@@ -84,13 +86,15 @@ example-data
 ;; which does that automatically for us [1].
 ;; The first argument to `reduce-kv` is a function which takes three arguments:
 ;; accumulator, key, value. This is usually used for hashmaps, but it also
-;; works for vectors where the key is the index of an element.
+;; works for vectors where the key is the index of an element.\
+;; Our accumulator will be a vector of two elements: an index at which we found
+;; the maximum value, and the maximum value itself [4].
 ;;
 ;; If we've found battery with `9` jolts, we know there can't be anything
 ;; more powerful than it and we can exit immediately with
 ;; [`reduced`](https://clojuredocs.org/clojure.core/reduced) [2].\
 ;; Otherwise, we check if the current value is strictly larger than the
-;; previous maximum and if so, its index and value become the new accumulator.
+;; previous maximum and if so, its index and value become the new accumulator [3].
 ;;
 
 (strongest-battery [2 7 5 7 3])
@@ -146,7 +150,8 @@ example-data
 ;; which does what we want with great `O(1)` performance.\
 ;; Once we've limited ourselves to the valid candidates, we can now find
 ;; the `strongest-battery` among them [3].
-;; Be careful, this will return `idx` of a given subvector so we need
+;; Be careful, this will return `idx` of a given `candidates` _subvector_
+;; (not of the original `batteries` vector) so we need
 ;; to _add_ it to the index it `start`ed from [4].\
 ;; For the next iteration we can consider one more battery on the right [5]
 ;; and we're adding the power of the battery we've just found to the
@@ -216,6 +221,7 @@ example-data
 ;; - `reduce-kv`: can be used on vectors to get indices
 ;; - `reduced`: early exit from `reduce`
 ;; - `partial`: partial application of a function
+
 
 
 ^:kindly/hide-code
