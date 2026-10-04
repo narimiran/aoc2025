@@ -3,10 +3,9 @@
   {:title "Printing Department"
    :url "https://adventofcode.com/2025/day/4"
    :extras "animation"
-   :highlights "grid helpers"
+   :highlights "grid helpers, cond->"
    :remark "The easiest one this year."}
   (:require [aoc-utils.core :as aoc]
-            [clojure.set :as set]
             [quil.core :as q]
             [quil.middleware :as m]
             [scicloj.kindly.v4.kind :as kind]))
@@ -42,7 +41,7 @@
 ;; My solution will use the
 ;; [grid-helper functions](https://narimiran.github.io/aoc-utils/intro.html#grids)
 ;; from my `aoc-utils` library. I'll try to briefly explain each function I use,
-;; and I'll link to its documentation so you can get more information there.
+;; and I'll link to their documentation so you can get more information there.
 
 
 
@@ -50,7 +49,7 @@
 ;; ## Input parsing
 ;;
 ;; We've already met the
-;; [`aoc/parse-line` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-parse-lines)
+;; [`aoc/parse-lines` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-parse-lines)
 ;; in our previous solutions.
 ;; The only difference is that here we want a list of characters on each lines,
 ;; and that is what `:chars` does.
@@ -67,15 +66,19 @@
 
 ;; The [`aoc/create-grid` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-create-grid)
 ;; does the job for us. Its last argument is a mapping from the characters
-;; we're interested in to their name in the produced hashmap [1].\
+;; we're interested in to their name in the produced hashmap [1]. Here we're
+;; only interested in the `@` character.\
 ;; This function produces a hashmap with various useful keys (e.g. the size
 ;; of the map), but this time we're interested only in the coordinates of
-;; the `:rolls` of paper [2].
+;; the `:rolls` of paper, so we immediately extract that [2].
 
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 4)))
 
+;; As an example, here are ten coordinates of the rolls (the full list is too long):
 (take 10 example-data)
+
+
 
 
 
@@ -94,11 +97,12 @@
 ;; The [`aoc/neighbours-8` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-neighbours-8)
 ;; takes a point as the first argument and a predicate we want to filter by as
 ;; its second argument [1]. Since `rolls` is a set, we can directly use it as
-;; a predicate. The result are rolls which are adjacent to the roll
-;; we're currently exploring.\
+;; a predicate. The result of that function are rolls which are adjacent to the
+;; roll we're currently exploring.\
 ;; The roll is accessible only if it has less than four neighbours [2].
 ;;
-;; We can use now use this function to `filter` all rolls:
+;; We can use now use this function to `filter` all rolls and keep only those
+;; which are `accessible`:
 
 (defn accessible [rolls]
   (filter #(accessible-roll? rolls %) rolls))
@@ -127,32 +131,45 @@
 ;; In Part 2 we realize that when we remove some rolls, some new ones become
 ;; `accessible`. We need to repeat the process until we cannot remove any more
 ;; rolls.
-;;
-;; Recursion time! Unlike [yesterday](day03.html) when we used `loop` for recursion,
-;; today we'll do it by repeatedly calling a function.
 
-(defn part-2
-  ([rolls] (part-2 rolls 0)) ; [1]
-  ([rolls removed]
-   (let [to-remove (accessible rolls)]
-     (if (empty? to-remove)  ; [2]
-       removed
-       (recur (set/difference rolls to-remove)   ; [3]
-              (+ removed (count to-remove)))))))
+(defn remove-accessible [rolls]
+  (reduce (fn [acc r]
+            (cond-> acc                           ; [1]
+              (accessible-roll? acc r) (disj r))) ; [2]
+          rolls
+          rolls))
 
-;; Not necessarily needed, but we're defining two arities of the same function
-;; so we can call it without specifying zero as the starting number of `removed`
-;; rolls [1].
+;; Here we use the [`cond->` macro](https://clojuredocs.org/clojure.core/cond-%3E) [1],
+;; but the same could have been written with `if` like this:
 ;;
-;; We're exiting the recursion when there's nothing `to-remove` [2].\
-;; Otherwise, we call the same function (this is what `recur` does here) with
-;; new arguments: the remaining rolls can be calculated as a set difference
-;; between all rolls and those we can remove [3], and the number of removed
-;; rolls is increased by the number of removed in this step.
+;; ```clj
+;;  (if (accessible-roll? acc r)
+;;    (disj acc r)
+;;    acc))
+;; ```
+
+;; We go through all of the rolls and for those which are accessible we'll remove
+;; them from the `acc` set with the
+;; [`disj` function](https://clojuredocs.org/clojure.core/disj) [2].
+
+
+
+;; Now we need to repeat that until no more removals are possible.
+
+(defn part-2 [initial-rolls]
+  (loop [rolls initial-rolls]
+    (let [rolls' (remove-accessible rolls)]
+      (if (= rolls rolls')                       ; [1]
+        (- (count initial-rolls) (count rolls')) ; [2]
+        (recur rolls')))))
+
+;; We will repeatedly remove rolls inside of `loop`. When there are no removals [1],
+;; we will exit the loop and calculate the amount of rolls removed [2].
 
 
 (part-2 example-data)
 (part-2 data)
+
 
 
 
@@ -178,7 +195,7 @@
       (if (empty? to-remove)
         accessible-states
         (recur (conj accessible-states to-remove)
-               (set/difference rolls to-remove))))))
+               (reduce disj rolls to-remove))))))
 
 (defn draw-rolls [rolls]
   (doseq [[x y] rolls]
@@ -244,6 +261,8 @@
 ;; Today's highlights:
 ;; - `aoc/create-grid`: helper for tasks like this one
 ;; - `aoc/neighbours-8`: get 8 neighbours of a point which satisfy a predicate
+;; - `cond->`: conditional threading
+
 
 
 ^:kindly/hide-code
