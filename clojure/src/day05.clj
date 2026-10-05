@@ -45,8 +45,8 @@
 ;; This time in our input we have two paragraphs, separated by a blank line.
 ;; This kind of input happens frequently so we came prepared for it:
 ;; the [`aoc/parse-paragraphs` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-parse-paragraphs)
-;; splits the input into two lists, each having lines as a separate elements.
-;; The second argument is applied to each line.
+;; splits the input into multiple lists, each having lines as a separate elements.
+;; The second argument of that function is applied to each line.
 
 (defn parse-data [input]
   (let [[ranges ingredients] (aoc/parse-paragraphs input :nats)]
@@ -54,11 +54,13 @@
      (mapv first ingredients)])) ; [1]
 
 ;; Since `:nats` will extract _all_ integers on a line into a list, for the
-;; second paragraph, where there is just one number, we immediately extract it.
+;; second paragraph, where there is just one number per line,
+;; we immediately extract it with `first` [1].
 
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 5)))
 
+;; When we parse the example, we get this:
 example-data
 
 ;; This looks exactly what we need. But beware of the huge numbers in the real input.
@@ -82,8 +84,8 @@ example-data
 
 ;; Now we need to do that for every ingredient and count how many of them
 ;; are fresh.\
-;; We could `filter` the ingredients and then `count` how many fresh are there,
-;; but I have a helper function
+;; We could `filter` the ingredients to keep only fresh ones,
+;; and then `count` how many fresh are there, but there is a helper function
 ;; [`aoc/count-if`](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-count-if),
 ;; which does that in a single step:
 
@@ -116,10 +118,10 @@ example-data
 ;; we can encounter:
 ;;
 ;; ```
-;; L<------------>H
-;;   L<----->H                      [1]
-;;         L<----------->H          [2a]
-;;                   L<-------->H   [2b]
+;; L--------------H
+;;    L-------H                    [1]
+;;         L-------------H         [2a]
+;;                   L----------H  [2b]
 ;; ```
 ;;
 ;; When we have sorted ranges, we know that each subsequent one will start
@@ -132,18 +134,18 @@ example-data
 ;; of this case: when the `lo` is below the previously highest point [2a],
 ;; and when it is larger [2b].
 ;;
-;; Enough talking, let's write some code.
+;; Let's write some code which deals with this.
 
 (defn part-2 [[ranges _]] ; [1]
   (->> (sort ranges)      ; [2]
-       (reduce (fn [[fresh highest :as acc] [lo hi]]
+       (reduce (fn [[fresh highest :as acc] [lo hi]]  ; [3]
                  (if (<= hi highest)
-                   acc                                ; [3]
-                   (let [start (max lo (inc highest)) ; [4]
+                   acc                                ; [4]
+                   (let [start (max lo (inc highest)) ; [5]
                          size  (- (inc hi) start)]
                      [(+ fresh size) hi])))
                [0 -1])
-       first)) ; [5]
+       first)) ; [6]
 
 
 
@@ -154,15 +156,18 @@ example-data
 ;; out of the box for vector elements, no need to manually specify a
 ;; comparator).
 ;;
+;; The accumulator is a vector containing a total amount of `fresh` ingredients
+;; and the `highest` number seen so far [3].
+;;
 ;; If the `hi` of the current range is lower than the highest one so far
 ;; (the case 1 from the graphical example above), then there's nothing for us to do,
-;; we keep the `acc`umulator as is and move to the next range to check [3].\
+;; we keep the `acc`umulator as is and move to the next range to check [4].\
 ;; We can deal with the cases 2a and 2b from the example above in one go: we use `max`
-;; to find the first new ingredient to include [4] and then calculate the size
+;; to find the first new ingredient to include [5] and then calculate the size
 ;; of new fresh ingredients.
 ;;
 ;; The returned accumulator will have two elements, and we're interested only
-;; in the first one [5].
+;; in the first one [6].
 
 (part-2 example-data)
 (part-2 data)
