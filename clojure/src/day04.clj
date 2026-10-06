@@ -2,8 +2,8 @@
 (ns day04
   {:title "Printing Department"
    :url "https://adventofcode.com/2025/day/4"
-   :extras "animation"
-   :highlights "grid helpers, cond->"
+   :extras "bench, animation"
+   :highlights "grid helpers, cond->, run!"
    :remark "The easiest one this year."}
   (:require [aoc-utils.core :as aoc]
             [quil.core :as q]
@@ -156,19 +156,106 @@
 
 ;; Now we need to repeat that until no more removals are possible.
 
-(defn part-2 [initial-rolls]
+(defn part-2 [remove-fn initial-rolls]           ; [1]
   (loop [rolls initial-rolls]
-    (let [rolls' (remove-accessible rolls)]
-      (if (= rolls rolls')                       ; [1]
-        (- (count initial-rolls) (count rolls')) ; [2]
+    (let [rolls' (remove-fn rolls)]
+      (if (= rolls rolls')                       ; [2]
+        (- (count initial-rolls) (count rolls')) ; [3]
         (recur rolls')))))
 
-;; We will repeatedly remove rolls inside of `loop`. When there are no removals [1],
-;; we will exit the loop and calculate the amount of rolls removed [2].
+;; Let's not hardcode the remove function [1], as there might be another, faster,
+;; way of removing the elements ;) \
+;; We will repeatedly remove rolls inside of `loop`. When there are no removals [2],
+;; we will exit the loop and calculate the amount of rolls removed [3].
 
 
-(part-2 example-data)
-(part-2 data)
+(part-2 remove-accessible example-data)
+(part-2 remove-accessible data)
+
+
+
+
+
+;; ### Remove in parallel
+;;
+;; Why should we go one by one roll when trying to remove them, when we could
+;; start from multiple rolls in parallel?
+
+(defn parallel-remove [rolls]
+  (let [chunks (partition-all 100 rolls) ; [1]
+        result (atom rolls)]             ; [2]
+    (->> chunks
+         (pmap #(run! (fn [r]            ; [3]
+                        (when (accessible-roll? @result r)
+                          (swap! result disj r))) ; [4]
+                      %))
+         doall) ; [5]
+    @result))   ; [6]
+
+;; We will divide the rolls into `chunks` of 100 elements each with the
+;; [`partition-all` function](https://clojuredocs.org/clojure.core/partition-all) [1].\
+;; Each chunk will read from and write to the same `result`, so we'll make it an
+;; [`atom`](https://clojuredocs.org/clojure.core/atom) [2].
+;;
+;; Since we'll be updating the atom, we're not interested in the result of that
+;; operation. Instead of using `map` or `reduce`, we should be using the
+;; [`run!` function](https://clojuredocs.org/clojure.core/run!) [3] to go through
+;; each roll in a chunk.
+;;
+;; Similar to our logic in the `remove-accessible` function above, once we find
+;; a roll which can be removed, we need to update the `result` atom with the
+;; [`swap!` function](https://clojuredocs.org/clojure.core/swap!) [4].
+;;
+;; Since `pmap` is lazy and we're interested in its side-effects, we need to force
+;; it to run with the [`doall` function](https://clojuredocs.org/clojure.core/doall) [5].\
+;; Once the job is done, we dereference the atom (using `@`) and return it [6].
+
+
+;; We can use the same `part-2` function as we did originally, and we get the same
+;; results:
+
+(part-2 parallel-remove example-data)
+(part-2 parallel-remove data)
+
+
+
+
+
+;; ### Performance comparison
+;;
+;; Like in our [Day 1 solution](day01.html), we will compare the performance of
+;; our two approaches with the
+;; [`criterium` library](https://github.com/hugoduncan/criterium).
+
+;; ```clj
+;; (require '[criterium.core :as c])
+;;
+;; (c/quick-bench (part-2 remove-accessible data))
+;; ```
+;;
+;; ```
+;; Evaluation count : 6 in 6 samples of 1 calls.
+;;              Execution time mean : 238.814830 ms
+;;     Execution time std-deviation : 58.422359 ms
+;;    Execution time lower quantile : 208.794855 ms ( 2.5%)
+;;    Execution time upper quantile : 337.590075 ms (97.5%)
+;;                    Overhead used : 1.678535 ns)
+;; ```
+;;
+;; ```clj
+;; (c/quick-bench (part-2 parallel-remove data))
+;; ```
+;;
+;; ```
+;; Evaluation count : 18 in 6 samples of 3 calls.
+;;              Execution time mean : 42.953429 ms
+;;     Execution time std-deviation : 3.511267 ms
+;;    Execution time lower quantile : 40.311982 ms ( 2.5%)
+;;    Execution time upper quantile : 48.596602 ms (97.5%)
+;;                    Overhead used : 1.678535 ns)
+;; ```
+
+;; About 6x speedup! Not bad for a relatively small change.
 
 
 
@@ -262,6 +349,7 @@
 ;; - `aoc/create-grid`: helper for tasks like this one
 ;; - `aoc/neighbours-8`: get 8 neighbours of a point which satisfy a predicate
 ;; - `cond->`: conditional threading
+;; - `run!`: run a function on each element for its side-effects
 
 
 
@@ -269,4 +357,4 @@
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)
-     (part-2 data)]))
+     (part-2 parallel-remove data)]))
