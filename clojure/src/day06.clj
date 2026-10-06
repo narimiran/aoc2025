@@ -3,7 +3,7 @@
   {:title "Trash Compactor"
    :url "https://adventofcode.com/2025/day/6"
    :extras ""
-   :highlights "comp, partition-by, take-nth"
+   :highlights "comp, partition-by, take-nth, re-seq"
    :remark "Advent of Parsing."}
   (:require [aoc-utils.core :as aoc]
             [clojure.string :as str]))
@@ -14,7 +14,7 @@
 ;; # Day 6: Trash Compactor
 ;;
 ;; We fell in the kitchen and landed in garbage smasher. The only way out is
-;; if help the youngest cephalopod with her math homework
+;; if we help the youngest cephalopod with her math homework
 ;; (on a Saturday morning!?).
 ;;
 ;; The homework has multiple numbers in some _columns_ which we need to either
@@ -27,7 +27,8 @@
 
 ;; (I've added `.` at the end of the first two rows in the example above
 ;; to stop my editor from trimming the trailing whitespace on file save.
-;; You can ignore it. Or now you can't anymore.)
+;; You can ignore it. Or now you can't any more.)
+
 
 
 
@@ -44,20 +45,22 @@
 
 
 
+
 ;; ### Part 1 numbers
 
-(defn number-columns [number-rows]
-  (->> number-rows
-       (map #(map parse-long %)) ; [1]
-       aoc/transpose))           ; [2]
+(defn number-columns [rows]
+  (->> rows
+       (map aoc/integers) ; [1]
+       aoc/transpose))    ; [2]
 
 
-;; In every row (outer `map`) we need to parse each element (inner `map`) [1].
+;; We extract all `integers` in each row [1].
 ;; To convert a list of rows to a list of columns, we use
 ;; [`aoc/transpose`](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-transpose) [2].\
 ;; Here's an example:
 
-(number-columns [["12" "34"] ["56" "78"]])
+(number-columns ["12 34" "56 78"])
+
 
 
 
@@ -80,8 +83,8 @@
        (take-nth 2)))                 ; [8]
 
 ;; This time we cannot just blindly parse words. Each space is significant.
-;; We'll convert the input into a list of lines, each containing all `:chars`
-;; in it [1].
+;; We'll convert the input into a list of lines, with each line being a list
+;; containing all `:chars` in it [1].
 ;; As the last line contains the operators, we don't need it here [2].
 ;; Just as before, we convert the list of rows into a list of cols [3].
 ;;
@@ -106,10 +109,10 @@
 ;;
 ;; Now, for each (`map`) column, we use
 ;; [`comp`](https://clojuredocs.org/clojure.core/comp) to create a
-;; composition of three functions. We apply them right-to-left.
+;; composition of three functions. They are applied right-to-left.
 ;; First we convert a column to a string [6] (`[\1 \space \space]` becomes `"1  "`),
-;; we remove all whitespace characters [5] (`"1  "` becomes `"1"`)
-;; and then convert it to an int [4] (`"1"` becomes `1`).
+;; we `trim` all whitespace characters [5] (`"1  "` becomes `"1"`)
+;; and then convert that to an int [4] (`"1"` becomes `1`).
 ;;
 ;; With this conversion, the columns consisting of only spaces become `nil`,
 ;; which is great as we need them to separate the numbers into separate
@@ -147,21 +150,23 @@
 ;; is that it can take multiple collections and iterate through their items
 ;; in parallel [1].
 ;; This is exactly what we need, for each column we need the operator and
-;; the numbers to apply the operation on.
+;; the numbers to `apply` the operation on.
 
 
 ;; Let's put all this together:
 
 (defn solve [input]
-  (let [lines (aoc/parse-lines input #(re-seq #"\d+|\*|\+" %)) ; [1]
-        operators (mapv {"+" + , "*" *} (last lines))          ; [2]
+  (let [lines (aoc/parse-lines input)
+        operators (->> (last lines)
+                       (re-seq #"\*|\+")       ; [1]
+                       (mapv {"+" + , "*" *})) ; [2]
         numbers-1 (number-columns (butlast lines))
         numbers-2 (vertical-numbers input)]
     [(calculate operators numbers-1)
      (calculate operators numbers-2)]))
 
-;; To extract what we need from each line, we'll use regex: we're interested
-;; in the digits and the operators [1].\
+;; To extract the operators from the `last` line, we can use the
+;; [`re-seq` function](https://clojuredocs.org/clojure.core/re-seq) [1].\
 ;; We'll transform the string representation of the operators to the functions.
 ;; We can use a hashmap as a function to do that elegantly [2].
 ;;
@@ -189,6 +194,7 @@
 ;; - `partition-by`: split a collection every time a predicate returns a different
 ;;   value
 ;; - `take-nth`: take every n-th element of a collection
+;; - `re-seq`: find all regex matches
 
 
 
