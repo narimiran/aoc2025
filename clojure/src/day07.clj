@@ -36,6 +36,8 @@
 ;; it splits to the left and right.
 
 
+
+
 ;; ## Input parsing
 ;;
 ;; You know the saying: If it quacks like a grid problem, use the
@@ -54,13 +56,14 @@
 ;; coordinates of those which match the given predicates [2].\
 ;; Since there is just one `start`, no need to keep a set of all starts,
 ;; we extract the only value [3].
-;;
-;; The returned hashmap contains various keys:
 
 (def example-data (parse-data example))
 (def data (parse-data (aoc/read-input 7)))
 
+;; The returned hashmap contains various keys:
 example-data
+
+
 
 
 
@@ -69,14 +72,15 @@ example-data
 ;; In Part 1 all we need to do is count how many times a beam sees a unique `^`
 ;; on its way from the `start` to the bottom of the grid.
 ;;
-;; There are three ways a beam can move: straight down, down-left or down-right:
+;; There are three ways a beam can move: straight down, down-left or down-right.
+;; One thing to notice in our input is that every other row is empty and we
+;; can automatically go two rows down to get a free 50% execution speedup.
 
-(defn down [x y] [x (inc y)])
-(defn dl [x y] [(dec x) (inc y)])
-(defn dr [x y] [(inc x) (inc y)])
+(defn down [x y] [x (+ y 2)])
+(defn dl [x y] [(dec x) (+ y 2)])
+(defn dr [x y] [(inc x) (+ y 2)])
 
 ;; We can now start from the top and count the splits along the way:
-
 
 (defn part-1 [{:keys [start splits height]}] ; [1]
   (loop [queue (conj aoc/empty-queue start)  ; [2]
@@ -86,9 +90,9 @@ example-data
           queue'       (pop queue)
           seen'        (conj seen pt)]
       (cond
-        (= y height) cnt                              ; [3]
-        (seen pt)    (recur queue' seen cnt)          ; [4]
-        (splits pt)  (recur (conj queue'              ; [5]
+        (= y height) cnt                             ; [3]
+        (seen pt)    (recur queue' seen cnt)         ; [4]
+        (splits pt)  (recur (conj queue'             ; [5]
                                   (dl x y)
                                   (dr x y))
                             seen'
@@ -107,16 +111,17 @@ example-data
 ;; There are four different cases we can encounter:
 ;; - [3] If we reached the bottom of our grid, since we're using BFS, we know
 ;;   that we've seen all the possible splits and we can return their count.
-;; - [4] If we've already `seen` the current point, we immediately recur with
-;;   the rest of the queue (`queue'`).
+;; - [4] If we've already `seen` the current point, nothing to do here:
+;;   we immediately recur with the rest of the queue (`queue'`).
 ;; - [5] If our current point is in `splits`, we split the beam in two and
 ;;   increase the `cnt` of seen splits.
-;; - [6] Otherwise, it is a regular point and we move one row down.
-
+;; - [6] Otherwise, it is a regular point and we move straight down.
 
 
 (part-1 example-data)
 (part-1 data)
+
+
 
 
 
@@ -128,6 +133,7 @@ example-data
 ;; there are.\
 ;; There are two different approaches we could take: iterative and recursive.
 ;; We'll explore both.
+
 
 
 
@@ -172,16 +178,16 @@ example-data
 ;; Time to use this on all rows of the grid.
 
 (defn part-2-iter [{:keys [start splits height]}]
-  (->> (range height)                          ; [1]
+  (->> (range 0 height 2)                      ; [1]
        (reduce (fn [beams y]                   ; [2]
                  (split-beams splits y beams))
                {(first start) 1})              ; [3]
        vals                                    ; [4]
        (reduce +)))
 
-;; For each row starting from the top [1], we will successively build a hashmap
-;; of the beam positions and their counts [2], starting from the single beam
-;; we start from [3].\
+;; For each _meaningful row_ (skipping the empty rows) starting from the top [1],
+;; we will successively build a hashmap of the beam positions and their counts [2],
+;; starting from the single beam we start from [3].\
 ;; Once we come to the end, we are interested just in the counts of the beams [4],
 ;; and we take their sum.
 
@@ -237,7 +243,9 @@ example-data
 ;; That's it! We survived the weekend!
 ;;
 ;; I initially solved the task with the iterative solution, and now that I've
-;; written both, I like the recursive solution more.
+;; written both, I like the recursive solution more as we don't need a helper
+;; function for beam splitting and updating the count — the recursive function
+;; is much simpler and all the counting is delegated to the Recursion Fairy.
 ;;
 ;; Today's highlights:
 ;; - `fnil`: provide a way for a function to deal with `nil` values
