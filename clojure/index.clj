@@ -26,7 +26,7 @@
 ;; Day 5: [Cafeteria](https://adventofcode.com/2025/day/5)                     | [day05.clj](day05.html) | some, sort                     |                      | Work sorter, not harder.
 ;; Day 6: [Trash Compactor](https://adventofcode.com/2025/day/6)               | [day06.clj](day06.html) | comp, partition-by, take-nth, re-seq |                | Advent of Parsing.
 ;; Day 7: [Laboratories](https://adventofcode.com/2025/day/7)                  | [day07.clj](day07.html) | fnil, memoize                  |                      | I smell something Lanternfishy.
-;; Day 8: [Playground](https://adventofcode.com/2025/day/8)                    | [day08.clj](day08.html) | hash-set, disj                 |                      | No Manhattan distance? Wow!
+;; Day 8: [Playground](https://adventofcode.com/2025/day/8)                    | [day08.clj](day08.html) | zipmap, group-by, sort-by      |                      | No Manhattan distance? Wow!
 ;; Day 9: [Movie Theater](https://adventofcode.com/2025/day/9)                 | [day09.clj](day09.html) | every?, pmap, ffirst           |                      | The hardest one so far.
 ;; Day 10: [Factory](https://adventofcode.com/2025/day/10)                     | [day10.clj](day10.html) | keep, distinct, juxt, frequencies, group-by |         | Divide and conquer.
 ;; Day 11: [Reactor](https://adventofcode.com/2025/day/11)                     | [day11.clj](day11.html) | memoize, zero?                 |                      | Surprisingly easy.
