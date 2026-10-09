@@ -3,7 +3,7 @@
   {:title "Movie Theater"
    :url "https://adventofcode.com/2025/day/9"
    :extras ""
-   :highlights "every?, pmap, ffirst"
+   :highlights "every?, peek"
    :remark "The hardest one so far."}
   (:require [aoc-utils.core :as aoc]))
 
@@ -46,41 +46,20 @@ example-data
 
 ;; ## Part 1
 ;;
-;; Our first task is to find the area of the largest rectangle whose two
+;; Our first task is to find the `area` of the largest rectangle whose two
 ;; diagonal points are the red tiles we've just parsed.
-;; Since we can see the future and know what Part 2 brings, we'll not just
-;; calculate the largest area, but also do some additional work.
-;; For each pair of points, we will create a vector of four values:
-;; `[min-x max-x min-y max-y]`, as we'll need that later.
 
-(defn create-box [[ax ay] [bx by]]
-  [(min ax bx) (max ax bx) (min ay by) (max ay by)])
+(defn rect-area [[ax ay] [bx by]]
+  (* (inc (abs (- ax bx)))
+     (inc (abs (- ay by)))))
 
+(let [a (example-data 0)
+      b (example-data 4)]
+  [a b (rect-area a b)])
 
-;; From that vector, we can easily calculate the `area`:
+;; This looks correct. We'll find the largest area together with our task
+;; for Part 2, so let's switch to that.
 
-(defn area [[x1 x2 y1 y2]]
-  (* (inc (- x2 x1))
-     (inc (- y2 y1))))
-
-
-;; Now we'll create a list of all rectangles sorted by their area.
-
-(defn largest-rectangles [pts]
-  (->> (for [a pts
-             b pts
-             :while (not= a b)
-             :let [box (create-box a b)]]
-         [(area box) box])       ; [1]
-       (sort (comp - compare)))) ; [2]
-
-;; For each rectangle, we want to know its `area` and the minimal and maximal
-;; values for each coordinate [1].\
-;; To sort the results in the descending order we negate the result of
-;; [`compare`](https://clojuredocs.org/clojure.core/compare) [2].
-;;
-;; Now, the solution for Part 1 is the first element of this sorted list.
-;; But we'll do it later, in the same function we'll use to solve Part 2.
 
 
 
@@ -97,13 +76,22 @@ example-data
 ;; (in a quite convoluted way), and then for every possible rectangle check
 ;; if all of its points (both on the edges and vertices and inside of it) are
 ;; contained in the set of points inside of the polygon.\
-;; If it sounds complicated, just know that it was _more_ complicated than
+;; If it sounds complicated, just know that it was even _more_ complicated than
 ;; it sounds. :')
 ;;
 ;; It turns out there is a much simpler way.
 ;;
-;; For each rectangle box we calculated earlier, we need to check if
-;; a polygon line is slicing through it.
+;; For each pair of points `a` and `b` which form a rectangle, we'll create
+;; a vector of four values: `[min-x max-x min-y max-y]`.
+
+(defn create-box [[ax ay] [bx by]]
+  [(min ax bx) (max ax bx) (min ay by) (max ay by)])
+
+(let [a (example-data 0)
+      b (example-data 5)]
+  [a b (create-box a b)])
+
+;; For each rectangle box, we need to check if a polygon line is slicing through it.
 
 (defn not-slicing? [[p-x1 p-x2 p-y1 p-y2] [r-x1 r-x2 r-y1 r-y2]]
   (or (<= p-x2 r-x1)   ; polygon line completely on the left
@@ -111,55 +99,91 @@ example-data
       (<= p-y2 r-y1)   ; polygon line completely above
       (>= p-y1 r-y2))) ; polygon line completely below
 
+;; For example, `p-x2` is the right-most coordinate of a polygon, and if that
+;; is smaller than `r-x1` (the left-most coordinate of a rectangle), it means
+;; that the polygon line (either horizontal or vertical, it doesn't matter)
+;; is completely on the left of the rectangle.\
+;; The same logic is applied to the remaining cases.
+
+
 ;; If a rectangle is `inside?` of a polygon, that means that
 ;; [`every?`](https://clojuredocs.org/clojure.core/every_q)
-;; line of a polygon is `not-slicing?` it.
+;; line of a polygon is `not-slicing?` it:
 
-(defn inside? [polygon-boxes rect]
-  (every? (fn [box]
-            (not-slicing? box rect))
-          polygon-boxes))
+(defn inside? [polygon-lines rect]
+  (every? #(not-slicing? % rect) polygon-lines))
 
+
+
+;; We'll need to know a `line-length` of each polygon line:
+
+(defn line-length [[x1 x2 y1 y2]]
+  (+ (- x2 x1) (- y2 y1)))
+
+;; Now we can create polygon lines from the provided points.
+
+(defn create-polygon-lines [pts]
+  (->> pts
+       (cons (peek pts))         ; [1]
+       (map create-box pts)      ; [2]
+       (sort-by line-length >))) ; [3]
+
+;; To "close" the polygon, we add its last point (we grab it efficiently with the
+;; [`peek` function](https://clojuredocs.org/clojure.core/peek)) to the beginning using
+;; the [`cons` function](https://clojuredocs.org/clojure.core/cons) [1].
+;;
+;; We'll transform each polygon line with `create-box` by providing two
+;; sequences of points to the `map` function [2].
+;; This automatically takes care of dealing with lines being horizontal or
+;; vertical:
+
+(let [[a b c] example-data]
+  [(create-box a b) (create-box b c)])
+
+;; Not really necessary to solve the task, but we'll sort the polygon lines so that
+;; the longer lines appear before shorter lines [3].
+;; This is done to gain (lots of) performance, as there is a higher chance that a longer
+;; line is slicing a rectangle, and we're short-circuiting on the first slice.
 
 ;; And that's it. That's all we need to solve the problem.
 
-(defn solve [polygon]
-  (let [rectangles (largest-rectangles polygon)
-        polygon' (conj polygon (first polygon))                  ; [1]
-        polygon-lines (map create-box polygon' (rest polygon'))] ; [2]
-    [(ffirst rectangles)          ; [3]
-     (->> rectangles
-          (pmap (fn [[area rect]] ; [4]
-                  (when (inside? polygon-lines rect)
-                    area)))
-          (some identity))]))     ; [5]
 
-;; To "close" the polygon, we add its first point to the end [1].
+(defn solve [pts]
+  (let [n (count pts)
+        polygon-lines (create-polygon-lines pts)]
+    (loop [i 1 , j 0         ; [1]
+           pt-1 0 , pt-2 0]  ; [2]
+      (cond
+        (>= i n) [pt-1 pt-2] ; [3]
+        (= j i) (recur (inc i) 0 pt-1 pt-2) ; [4]
+        :else
+        (let [a (pts i)
+              b (pts j)
+              area (rect-area a b)]     ; [5]
+          (recur i (inc j)
+                 (max pt-1 area)        ; [6]
+                 (if (and (> area pt-2) ; [7]
+                          (inside? polygon-lines (create-box a b)))
+                   area
+                   pt-2)))))))
+
+;; We need to go through all pairs of points. We'll use indices `i` and `j`
+;; to get the pairs [1]. We'll update `pt-1` and `pt-2` when we improve the
+;; score for each part.
 ;;
-;; We'll transform each polygon line with `create-box`, which will
-;; automatically take care of dealing with lines being horizontal or
-;; vertical [2]:
-
-(let [[a b c] example-data]
-  [(create-box a b)
-   (create-box b c)])
-
-;; We've created a sorted list of `largest-rectangles`.
-;; The largest rectangle is the first element of it. Its area
-;; is the first element of that first element. To get that (which is the
-;; solution for Part 1) we can use the
-;; [`ffirst` function](https://clojuredocs.org/clojure.core/ffirst) [3].
+;; When we come to the end of indices, we return the result [3].
+;; As a rectangle with diagonal points A and B is the same as the one with
+;; points B and A, we consider only a half of all point combinations [4].
 ;;
-;; We will use that sorted list of largest rectangles to find the first one
-;; which is completely inside of the polygon.\
-;; We could use `filter`, but we will take an advantage of modern hardware
-;; and do this in parallel with the
-;; [`pmap` function](https://clojuredocs.org/clojure.core/pmap) [4].\
-;; We are interested in the first truthy value and we can get it with
-;; `(some identity coll)` [5].
+;; On a regular loop step, we calculate `rect-area` of two points [5],
+;; update the `pt-1` result [6], and only if the current `area` is better
+;; than the current best result for Part 2 [7] we do an expensive check if
+;; the rectangle is `inside?` the `polygon-lines` and update the `pt-2` result.
+
 
 (solve example-data)
 (solve data)
+
 
 
 
@@ -168,13 +192,12 @@ example-data
 ;;
 ;; This one was the hardest one for me so far this year.\
 ;; It took me a while to come up with a way to check if a rectangle is inside
-;; of a polygon. And then, it turns out that was an overkil and there is
-;; a much simpler solution possible.
+;; of a polygon. And then, it turns out my original idea was an overkill and
+;; there is a much simpler solution possible.
 ;;
 ;; Today's highlights:
 ;; - `every?`: is a predicate true for every element of a collection?
-;; - `pmap`: map in parallel
-;; - `ffirst`: first element of first element
+;; - `peek`: efficiently grab the last element of a vector
 
 
 ^:kindly/hide-code
