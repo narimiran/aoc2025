@@ -90,6 +90,7 @@
 ;; taken by other rolls. If there are less than four of them, it means the roll
 ;; is accessible by the forklifts.
 
+
 (defn accessible-roll? [rolls roll]
   (let [neighbouring-rolls (aoc/neighbours-8 roll rolls)] ; [1]
     (< (count neighbouring-rolls) 4)))                    ; [2]
@@ -128,6 +129,8 @@
 
 ;; ## Part 2
 ;;
+;; ### Initial solution
+;;
 ;; In Part 2 we realize that when we remove some rolls, some new ones become
 ;; `accessible`. We need to repeat the process until we cannot remove any more
 ;; rolls.
@@ -156,12 +159,15 @@
 
 ;; Now we need to repeat that until no more removals are possible.
 
-(defn part-2 [remove-fn initial-rolls]           ; [1]
-  (loop [rolls initial-rolls]
-    (let [rolls' (remove-fn rolls)]
-      (if (= rolls rolls')                       ; [2]
-        (- (count initial-rolls) (count rolls')) ; [3]
-        (recur rolls')))))
+(defn part-2 [remove-fn initial-rolls] ; [1]
+  (let [n (count initial-rolls)]
+    (loop [rolls initial-rolls
+           c n]
+      (let [rolls' (remove-fn rolls)
+            c' (count rolls')]
+        (if (= c c')                   ; [2]
+          (- n c')                     ; [3]
+          (recur rolls' c'))))))
 
 ;; Let's not hardcode the remove function [1], as there might be another, faster,
 ;; way of removing the elements ;) \
@@ -221,10 +227,80 @@
 
 
 
+;; ### Just count
+;;
+;; After some thinking about the performance, I found two places where we're
+;; doing unnecessary work.
+;;
+;; In the `accessible-roll?` function we first create a vector of all neighbours,
+;; just to count their amount. We can count them directly, and even exit the
+;; process immediately if we already found four neighbours.
+
+(defn accessible-roll-faster? [rolls [x y]]
+  (loop [i 0
+         nbs 0]
+    (cond
+      (= nbs 4) false      ; [1]
+      (> i (+ 4 nbs)) true ; [2]
+      :else
+      (let [[dx dy] (aoc/offsets-8 i)]
+        (recur (inc i)
+               (if (rolls [(+ x dx) (+ y dy)])
+                 (inc nbs)
+                 nbs))))))
+
+;; If we already found four neighbours, a roll is not accessible [1].
+;; If we're checking e.g. 6th neighbouring position and we found just
+;; no neighbours so far, even if all remaining positions contain a
+;; neighbour the roll will still be accessible [2].
+
+
+
+;; The second place when we were doing extra work in the original `part-2`
+;; function is to have the `remove-fn` return all the rolls that remain
+;; and then to count how many of them are left. And then repeat that in
+;; a loop until there's no more changes at some point.
+;;
+;; Here's another approach: In a single loop we will track the remaining
+;; `rolls` (as we need to check if a current roll is accessible), we will
+;; have a "stack" of rolls we need to check, and we'll directly count
+;; the amount of `removed` rolls:
+
+(defn remove-directly [rolls]
+  (loop [rolls rolls
+         [r & stack'] (seq rolls)
+         removed 0]
+    (cond
+      (nil? r) removed                                  ; [1]
+      (and (rolls r) (accessible-roll-faster? rolls r)) ; [2]
+      (recur (disj rolls r)
+             (into stack' (aoc/neighbours-8 r rolls))   ; [3]
+             (inc removed))
+      :else (recur rolls stack' removed))))             ; [4]
+
+;; If there are no more rolls in the stack, we return the amount of
+;; `removed` rolls [1].
+;;
+;; If the current roll `r` is still in `rolls` and it is accessible [2],
+;; we remove it from the `rolls`, we push the neighbours of it to the
+;; stack [3] to (re-)check if they are now accessible, and increase the
+;; removed count.\
+;; Otherwise, we move on to the next roll on the stack.
+
+
+(remove-directly example-data)
+(remove-directly data)
+
+
+
+
+
+
+
 ;; ### Performance comparison
 ;;
 ;; Like in our [Day 1 solution](day01.html), we will compare the performance of
-;; our two approaches with the
+;; our three approaches with the
 ;; [`criterium` library](https://github.com/hugoduncan/criterium).
 
 ;; ```clj
@@ -235,11 +311,11 @@
 ;;
 ;; ```
 ;; Evaluation count : 6 in 6 samples of 1 calls.
-;;              Execution time mean : 238.814830 ms
-;;     Execution time std-deviation : 58.422359 ms
-;;    Execution time lower quantile : 208.794855 ms ( 2.5%)
-;;    Execution time upper quantile : 337.590075 ms (97.5%)
-;;                    Overhead used : 1.678535 ns)
+;;              Execution time mean : 124.700207 ms
+;;     Execution time std-deviation : 3.819113 ms
+;;    Execution time lower quantile : 120.651245 ms ( 2.5%)
+;;    Execution time upper quantile : 130.344187 ms (97.5%)
+;;                    Overhead used : 1.832033 ns)
 ;; ```
 ;;
 ;; ```clj
@@ -247,15 +323,33 @@
 ;; ```
 ;;
 ;; ```
-;; Evaluation count : 18 in 6 samples of 3 calls.
-;;              Execution time mean : 42.953429 ms
-;;     Execution time std-deviation : 3.511267 ms
-;;    Execution time lower quantile : 40.311982 ms ( 2.5%)
-;;    Execution time upper quantile : 48.596602 ms (97.5%)
-;;                    Overhead used : 1.678535 ns)
+;; Evaluation count : 24 in 6 samples of 4 calls.
+;;              Execution time mean : 29.775313 ms
+;;     Execution time std-deviation : 8.343539 ms
+;;    Execution time lower quantile : 21.650080 ms ( 2.5%)
+;;    Execution time upper quantile : 42.306694 ms (97.5%)
+;;                    Overhead used : 1.832033 ns)
 ;; ```
 
-;; About 6x speedup! Not bad for a relatively small change.
+;; About 4x speedup! Not bad for a small difference: we just changed
+;; the function which removes the rolls and took the advantage of parallelization
+;; on modern hardware.
+
+;; ```clj
+;; (c/quick-bench (remove-directly data))
+;; ```
+;;
+;; ```
+;; Evaluation count : 36 in 6 samples of 6 calls.
+;;              Execution time mean : 19.357323 ms
+;;     Execution time std-deviation : 243.433805 µs
+;;    Execution time lower quantile : 19.101958 ms ( 2.5%)
+;;    Execution time upper quantile : 19.644974 ms (97.5%)
+;;                    Overhead used : 1.832033 ns)
+;; ```
+;;
+;; Even without any parallelization, this version gains another 1.5x
+;; speedup.
 
 
 
@@ -357,4 +451,4 @@
 (defn -main [input]
   (let [data (parse-data input)]
     [(part-1 data)
-     (part-2 parallel-remove data)]))
+     (remove-directly data)]))
