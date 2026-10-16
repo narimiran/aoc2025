@@ -2,7 +2,7 @@
 (ns day05
   {:title "Cafeteria"
    :url "https://adventofcode.com/2025/day/5"
-   :extras ""
+   :extras "bench"
    :highlights "some, sort"
    :remark "Work sorter, not harder."}
   (:require [aoc-utils.core :as aoc]))
@@ -176,11 +176,142 @@ example-data
 
 
 
+
+
+;; ## Both parts at once
+;;
+;; It turns out that the idea we had for Part 2 can be improved and then used to
+;; solve both parts more efficiently.\
+;; We can reduce the number of ranges we need to check by merging the ranges
+;; that can be merged.
+;;
+;; Let's look again at our example where we have an existing range on the first
+;; line and three different situations that can arise with the next range:
+;; ```
+;; L--------------H
+;;    L-------H                    [1]
+;;         L-------------H         [2]
+;;                   L----------H  [3]
+;; ```
+;;
+;; In the situation [1], the second range is completely "swallowed" by the
+;; existing one, so we don't have to even consider the second range.\
+;; For the situation [2], we can merge those two ranges into one:
+;; ```
+;; L--------------H
+;;         L-------------H
+;; becomes:
+;; L---------------------H
+;; ```
+;;
+;; And in the situation [3], as there is no overlap, we keep both ranges as they were.
+
+
+(defn merge-ranges [ranges]
+  (let [[r & rngs] (sort ranges)]
+    (reduce (fn [acc [lo hi]]
+              (let [[prev-lo prev-hi] (peek acc)]
+                (if (<= lo (inc prev-hi))
+                  (conj (pop acc) [prev-lo (max prev-hi hi)]) ; [1]
+                  (conj acc [lo hi]))))                       ; [2]
+            [r]
+            rngs)))
+
+;; If `lo` of the current range is not higher than `prev-hi`, it means
+;; we should merge those two ranges [1]. Using `(max prev-hi hi)` allows
+;; us to cover both situation 1 and 2 from above: either the current
+;; range will be "swallowed" or the existing range will be extended.\
+;; If there is no overlap (situation 3), we just add the current range to the list of
+;; ranges [2].
+
+;; For our new Part 1 solution we will also sort the ingredients, and then
+;; it is easy to see if an igredient is part of some range. There are three
+;; possible scenarios:
+;; 1. An ingredient is lower than the current range. Because the ranges are
+;;    sorted, it means it can't be part of any subsequent range, and we dismiss
+;;    it and go to check the next ingredient.
+;; 2. If an ingredient is part of the current range, we count it and move to
+;;    the next ingredient while keeping the current range.
+;; 3. If an ingredient is higher than the current range, we need to check that
+;;    ingredient with the next range.
+
+(defn pt-1 [sorted-ranges sorted-ingredients]
+  (loop [[[lo hi] & ranges' :as ranges] sorted-ranges
+         [ing & ings' :as ings]         sorted-ingredients
+         result                         0]
+        (cond
+          (or (nil? lo)
+              (nil? ing)) result ; [1]
+          (< ing lo)      (recur ranges ings' result)
+          (<= ing hi)     (recur ranges ings' (inc result))
+          :else           (recur ranges' ings result))))
+
+;; If there are no more ranges or no more ingredients, we came to the end and
+;; return the `result` [1].\
+;; Next three conditions follow the scenarios described above.
+
+(defn solve [[ranges ingredients]]
+  (let [sorted-ranges (merge-ranges ranges)
+        sorted-ingredients (sort ingredients)]
+    [(pt-1 sorted-ranges sorted-ingredients)
+     (aoc/sum-map (fn [[lo hi]] (inc (- hi lo))) sorted-ranges)])) ; [1]
+
+;; When we have merged ranges, it is easy to calculate the result for Part 2.
+
+
+(solve example-data)
+(solve data)
+
+
+
+
+
+;; ## Performance comparison
+;;
+;; This looks more efficient than our original solution, but by how much?
+
+;; ```clj
+;; (require '[criterium.core :as c])
+;;
+;; (c/quick-bench (part-1 data))
+;; ```
+
+;; ```
+;; Evaluation count : 324 in 6 samples of 54 calls.
+;;              Execution time mean : 1.894434 ms
+;;     Execution time std-deviation : 25.923530 µs
+;;    Execution time lower quantile : 1.873166 ms ( 2.5%)
+;;    Execution time upper quantile : 1.928804 ms (97.5%)
+;;                    Overhead used : 1.831777 ns)
+;; ```
+;;
+;; ```clj
+;; (c/quick-bench (solve data))
+;; ```
+;; ```
+;; Evaluation count : 3006 in 6 samples of 501 calls.
+;;              Execution time mean : 200.332834 µs
+;;     Execution time std-deviation : 1.578994 µs
+;;    Execution time lower quantile : 197.712240 µs ( 2.5%)
+;;    Execution time upper quantile : 201.856749 µs (97.5%)
+;;                    Overhead used : 1.831777 ns)
+;; ```
+
+;; Almost 10x faster! (And the second one is solving both parts.)
+
+
+
+
+
+
+
 ;; ## Conclusion
 ;;
 ;; The first task this year where a naive (i.e. brute force) approach won't work.
 ;; But it was easy to come up with a sufficiently smart approach which does
-;; the trick for Part 2.
+;; the trick for Part 2.\
+;; The difference between "sufficiently smart" and "smart" solution for Part 1
+;; is about 10x.
 ;;
 ;; And now let's get ready for the weekend (when, traditionally, the tasks
 ;; are harder). The only weekend in this year's AoC. Oh my.
@@ -194,5 +325,4 @@ example-data
 ^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
-    [(part-1 data)
-     (part-2 data)]))
+    (solve data)))
