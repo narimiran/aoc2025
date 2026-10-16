@@ -3,7 +3,7 @@
   {:title "Movie Theater"
    :url "https://adventofcode.com/2025/day/9"
    :extras ""
-   :highlights "every?, peek"
+   :highlights "every?, peek, long-array"
    :remark "The hardest one so far."}
   (:require [aoc-utils.core :as aoc]))
 
@@ -49,7 +49,7 @@ example-data
 ;; Our first task is to find the `area` of the largest rectangle whose two
 ;; diagonal points are the red tiles we've just parsed.
 
-(defn rect-area [[ax ay] [bx by]]
+(defn rect-area ^long [[^long ax ^long ay] [^long bx ^long by]]
   (* (inc (abs (- ax bx)))
      (inc (abs (- ay by)))))
 
@@ -84,7 +84,7 @@ example-data
 ;; For each pair of points `a` and `b` which form a rectangle, we'll create
 ;; a vector of four values: `[min-x max-x min-y max-y]`.
 
-(defn create-box [[ax ay] [bx by]]
+(defn create-box [[^long ax ^long ay] [^long bx ^long by]]
   [(min ax bx) (max ax bx) (min ay by) (max ay by)])
 
 (let [a (example-data 0)
@@ -110,9 +110,44 @@ example-data
 ;; [`every?`](https://clojuredocs.org/clojure.core/every_q)
 ;; line of a polygon is `not-slicing?` it:
 
-(defn inside? [polygon-lines rect]
+(defn inside-initial? [polygon-lines rect]
   (every? #(not-slicing? % rect) polygon-lines))
 
+;; The `inside-initial?` function is what I initially used, but this turned out
+;; to be a performance bottleneck and with some implementation changes, while
+;; keeping the same logic, we can get 4x performance speedup. Let's take that
+;; opportunity.
+;;
+;; The following function expects polygon lines to be one long flat array, so
+;; every 4th index in it is a next point.
+;;
+;; ```
+;; instead of:
+;; [[x1 x2 y1 y2] [x1 x2 y1 y2] [x1 x2 y1 y2] ...]
+;;  0             1             2             3
+;; we will now have:
+;; [x1 x2 y1 y2 x1 x2 y1 y2 x1 x2 y1 y2 ...]
+;;  0           4           8           12
+;; ```
+
+;; We can use the same logic from the  `not-slicing?` function above to write
+;; the faster version:
+
+(defn inside? [^longs poly [^long x1 ^long x2 ^long y1 ^long y2]]
+  (let [n (alength poly)]
+    (loop [i 0]
+      (cond
+        (>= i n) true                                    ; [1]
+        (or (<= (aget poly (+ i 1)) x1)
+            (>= (aget poly    i   ) x2)
+            (<= (aget poly (+ i 3)) y1)
+            (>= (aget poly (+ i 2)) y2)) (recur (+ i 4)) ; [2]
+        :else false))))                                  ; [3]
+
+;; If we came to the end of all polygon lines, it means we haven't found a single
+;; one that was slicing the rectangle [1].\
+;; If all checks pass for the current polygon line, we move to tme next one [2],
+;; otherwise we found a slice and can exit immediately [3].
 
 
 ;; We'll need to know a `line-length` of each polygon line:
@@ -124,9 +159,11 @@ example-data
 
 (defn create-polygon-lines [pts]
   (->> pts
-       (cons (peek pts))         ; [1]
-       (map create-box pts)      ; [2]
-       (sort-by line-length >))) ; [3]
+       (cons (peek pts))       ; [1]
+       (map create-box pts)    ; [2]
+       (sort-by line-length >) ; [3]
+       (reduce into)           ; [4]
+       long-array))            ; [5]
 
 ;; To "close" the polygon, we add its last point (we grab it efficiently with the
 ;; [`peek` function](https://clojuredocs.org/clojure.core/peek)) to the beginning using
@@ -145,25 +182,30 @@ example-data
 ;; This is done to gain (lots of) performance, as there is a higher chance that a longer
 ;; line is slicing a rectangle, and we're short-circuiting on the first slice.
 
-;; And that's it. That's all we need to solve the problem.
+;; If we were using `inside-initial?` that would be all we need to solve the problem.
+;; To convert the polygon lines to a flat array, we first flatten our nested list [4]
+;; (`reduce into` if faster than `flatten`), and convert it to array of longs with the
+;; [`long-array` function](https://clojuredocs.org/clojure.core/long-array) [5].
 
+;; Ok, now we can `solve` it:
 
 (defn solve [pts]
   (let [n (count pts)
         polygon-lines (create-polygon-lines pts)]
-    (loop [i 1 , j 0         ; [1]
-           pt-1 0 , pt-2 0]  ; [2]
+    (loop [i 1 , j 0                        ; [1]
+           pt-1 0 , pt-2 0]                 ; [2]
       (cond
-        (>= i n) [pt-1 pt-2] ; [3]
+        (>= i n) [pt-1 pt-2]                ; [3]
         (= j i) (recur (inc i) 0 pt-1 pt-2) ; [4]
         :else
         (let [a (pts i)
               b (pts j)
-              area (rect-area a b)]     ; [5]
+              area (rect-area a b)]         ; [5]
           (recur i (inc j)
-                 (max pt-1 area)        ; [6]
-                 (if (and (> area pt-2) ; [7]
-                          (inside? polygon-lines (create-box a b)))
+                 (max pt-1 area)            ; [6]
+                 (if (and (> area pt-2)     ; [7]
+                          (inside? polygon-lines
+                                   (create-box a b)))
                    area
                    pt-2)))))))
 
@@ -198,6 +240,7 @@ example-data
 ;; Today's highlights:
 ;; - `every?`: is a predicate true for every element of a collection?
 ;; - `peek`: efficiently grab the last element of a vector
+;; - `long-array`: convert a vector of longs into an array
 
 
 ^:kindly/hide-code
