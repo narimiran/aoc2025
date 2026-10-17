@@ -71,9 +71,14 @@
 ;; distance in 3D space. Since we do the same for all pairs, we don't really need
 ;; to take a square root of the distances.
 
-(defn sq [x] (* x x))
+;; (We will be type-hinting these functions with `^long`, as they are on the hot
+;; path and will be called huge amount of time, and this is critical to get some
+;; performance benefits.)
 
-(defn distance-squared [[x1 y1 z1] [x2 y2 z2]]
+(defn sq ^long [^long x] (* x x))
+
+(defn distance-squared ^long [[^long x1 ^long y1 ^long z1]
+                              [^long x2 ^long y2 ^long z2]]
   (+ (sq (- x2 x1))
      (sq (- y2 y1))
      (sq (- z2 z1))))
@@ -104,37 +109,43 @@
 ;; 20.000 in each direction, and we'll use the same value later on to limit
 ;; ourselves to only the connections whose distance is less than that.
 
-(def threshold 20000)
+(def ^:const threshold 20000)
 
-(defn cube [box]
+(defn make-cube [box]
   (mapv #(quot % threshold) box))
 
 ;; This is how it looks for some of our boxes:
 
 (for [box (take 3 data)]
-  [box (cube box)])
+  [box (make-cube box)])
 
 ;; Now we can create `sorted-connections` of our `boxes`:
 
 (defn sorted-connections [boxes]
-  (let [limit (sq threshold)                     ; [1]
-        cubes (group-by cube boxes)]             ; [2]
-    (sort (for [[cube points] cubes
-                nb-cube (aoc/neighbours-27 cube) ; [3]
-                a points
-                b (cubes nb-cube)
-                :when (neg? (compare a b))       ; [4]
-                :let [dist (distance-squared a b)]
-                :when (< dist limit)]            ; [5]
-            [dist a b]))))
+  (let [limit  (sq threshold)                  ; [1]
+        cubes  (group-by make-cube boxes)      ; [2]
+        result (atom (transient []))]          ; [3]
+    (doseq [[cube points] cubes
+            nb-cube (aoc/neighbours-27 cube)   ; [4]
+            b (cubes nb-cube)
+            a points
+            :when (and (< (aoc/manhattan-3d a b)
+                          threshold)           ; [5]
+                       (neg? (compare a b)))   ; [6]
+            :let [dist (distance-squared a b)]
+            :when (< dist limit)]              ; [7]
+      (swap! result conj! [dist a b]))
+    (sort (persistent! @result))))             ; [8]
 
 ;; As mentioned before, we'll limit the connection distance. Since we calculate
 ;; squared distances, we need to `sq`uare the limit too [1].
 ;;
 ;; We will [`group-by`](https://clojuredocs.org/clojure.core/group-by) the boxes
-;; by the `cube` they belong to [2] and then iterate through each cube.
-;; In fact, we have a very nested for-loop.\
-;; For each cube we will calculate all 3x3x3 neighbouring cubes [3] by using my
+;; by the cube they belong to [2] and then iterate through each cube.
+;; In fact, we would have a very nested for-loop, so we will have the `result` as
+;; an atom [3] and use `doseq` to iterate.
+;;
+;; For each cube we will calculate all 3x3x3 neighbouring cubes [4] by using my
 ;; [`aoc/neighbours-27` helper function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-neighbours-27),
 ;; and then for each point `a` in our cube and each point `b` in a neighbouring
 ;; cube calculate their distance.\
@@ -142,13 +153,16 @@
 ;; are two or more cubes away from each other, as they'd surely have too large
 ;; distance between them.
 ;;
-;; We'll further narrow down the number of combinations we explore.
-;; The condition at [4] makes sure that for each pair of points we calculate
+;; We'll further narrow down the number of combinations we explore.\
+;; Even before we calculate `distance-squared` of two points, we will eliminate
+;; those pairs whose Manhattan distance is higher than our `threshold` [5]:
+;; this is a relatively quick check before we move to the more expensive calculations.
+;; The condition at [6] makes sure that for each pair of points we calculate
 ;; their distance only once (as we will encounter each pair twice).\
-;; For the points that are at most one cube away from each other, we will
-;; make the connection only when the distance between them is lower than our
-;; `limit` [5].
-
+;; Once we have the squared distance, we will add it to `result` only if it is below
+;; our limit [7].
+;;
+;; Once we have all connections, we need to `sort` them [8] before returning.
 
 ;; This is how it looks for the first few elements of our example:
 
