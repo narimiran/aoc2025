@@ -1,20 +1,21 @@
 {:paths ["src" "tests" "dev"]
- :deps  {org.clojure/clojure            {:mvn/version "1.12.5"}
-         com.github.narimiran/aoc-utils {:git/tag "v0.9.4" :git/sha "c803922"}
+ :deps  {org.clojure/clojure            {:mvn/version "1.12.6"}
+         com.github.narimiran/aoc-utils {:git/tag "v0.10.0" :git/sha "0e7e0d0"}
          criterium/criterium            {:mvn/version "0.4.6"}
-         org.scicloj/clay               {:mvn/version "2.0.23"}
+         org.scicloj/clay               {:mvn/version "2.0.24"}
          quil/quil                      {:mvn/version "4.3.1563"}}
  :aliases
  {:profile {:jvm-opts   ["-Djdk.attach.allowAttachSelf"]
-            :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.7.0"}
-                         com.taoensso/tufte                       {:mvn/version "3.0.2"}}}
+            :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.9.0"}
+                         com.taoensso/tufte                       {:mvn/version "3.1.0"}}}
   :clay    {:main-opts ["-m" "scicloj.clay.v2.main"]}
+  :aoc-dev {:override-deps {com.github.narimiran/aoc-utils {:local/root "../../aoc-utils"}}}
   :test    {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
             :main-opts  ["-m" "kaocha.runner"]}
-  :splint  {:extra-deps {io.github.noahtheduke/splint {:mvn/version "1.24.0"}}
+  :splint  {:extra-deps {io.github.noahtheduke/splint {:mvn/version "1.25.0"}}
             :main-opts  ["-m" "noahtheduke.splint"]}
-  :debug   {:extra-deps {com.github.flow-storm/clojure        {:mvn/version "1.12.5"}
-                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.5.9"}}
+  :debug   {:extra-deps {com.github.flow-storm/clojure        {:mvn/version "1.12.5-1"}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.8.1"}}
             :jvm-opts   ["-Dclojure.storm.instrumentEnable=true"
                          "-Dclojure.storm.instrumentOnlyPrefixes=aoc,day"
                          "-Dflowstorm.theme=dark"
