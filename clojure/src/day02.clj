@@ -2,10 +2,11 @@
 (ns day02
   {:title "Gift Shop"
    :url "https://adventofcode.com/2025/day/2"
-   :extras ""
+   :extras "bench"
    :highlights "partition, re-matches"
    :remark "Easier than Day 1."}
-  (:require [aoc-utils.core :as aoc]))
+  (:require [aoc-utils.core :as aoc]
+            [clojure.string :as str]))
 
 
 
@@ -70,45 +71,49 @@ example-data
 ;; We need to find invalid IDs, which are those where the ID consists of two
 ;; identical halves, e.g. `567567` is invalid and `565656` isn't.
 
-(defn identical-halves? [id]
-  (let [id-string (str id)
-        half (/ (count id-string) 2)]
-    (= (subs id-string 0 half)
-       (subs id-string half))))
+(def pow10s
+  (long-array [1 10 100 1000 10000 100000 1000000]))
+
+(defn identical-halves? [^long n]
+  (let [digits (aoc/count-digits n)]          ; [1]
+    (and (even? digits)                       ; [2]
+         (let [half (aget ^longs pow10s
+                          (quot digits 2))]   ; [3]
+           (= (quot n half) (rem n half)))))) ; [4]
+
+;; To count the number of digits of a number, we have a handly helper
+;; [`aoc/count-digits`](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-count-digits) [1].
+;; We'll only consider the numbers which can be cut in two halves of identical
+;; lengths [2].\
+;; To cut a number in half, we need to find a power of 10 which we can use,
+;; e.g. for 6-digit number, that would be 10^3 [3]. Using that `half`, we
+;; can compare numbers on the both sides of it [4].
+
 
 (identical-halves? 567567)
 (identical-halves? 565656)
 
 
-;; Now we have to check all IDs in a given range to see which ones are invalid:
-
-(defn check-range [invalid-fn lo hi]
-  (filter invalid-fn            ; [1]
-          (range lo (inc hi)))) ; [2]
-
-;; We will go through the range of IDs and we want to keep only those for which
-;; the `invalid-fn` returns truthy value [1].
-;; We didn't hardcode the `invalid-fn` as `identical-halves?` because we
-;; have a luxury of knowing what Part 2 brings.\
-;; The `range` function doesn't include the upper bound, so we need to take
-;; that into an account [2].
-
-(check-range identical-halves? 4 35)
-(check-range identical-halves? 998 1012)
-
-
-;; Our task is to add up all invalid IDs:
 
 (defn sum-invalids [invalid-fn [lo hi]] ; [1]
-  (reduce + (check-range invalid-fn lo hi)))
+  (transduce                            ; [2]
+   (filter invalid-fn)                  ; [3]
+   +
+   (range lo (inc hi))))                ; [4]
 
 ;; We have our ranges represented as a two-element list, so we will immediately
 ;; destructure it [1].
+;;
+;; The [`transduce` function](https://clojuredocs.org/clojure.core/transduce)
+;; is similar to `reduce`, but more efficient [2].\
+;; First we `filter` the numbers to keep only those for which the `invalid-fn`
+;; returns a truthy value [3], and then take the sum of those numbers.
+;; We didn't hardcode the `invalid-fn` as `identical-halves?` because we
+;; have a luxury of knowing what Part 2 brings.\
+;; The `range` function doesn't include the upper bound, so we need to take
+;; that into an account [4].
 
-(sum-invalids identical-halves? [4 30])
 
-
-;; Everything works correctly.
 ;; To calculate the total sum, we need to apply the `sum-invalids` function
 ;; to each range in the input, and then take a sum of the results. With the
 ;; [`aoc/sum-pmap` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-sum-pmap)
@@ -134,11 +139,11 @@ example-data
 ;; substring repeated _several_ times (not only twice as in Part 1).
 ;; This means that now the ID `565656` becomes invalid, as the `56` substring
 ;; repeats three times.
-;;
-;; Here we could continue with a similar approach we had in Part 1, having to
-;; check if an ID string consists just of some substring (of a different length),
-;; e.g. check if ID `123456` consists of only `1`s, or just `12`s, or just
-;; `123`s, etc. But there is a better way.
+
+
+
+
+;; ### Regular expressions
 ;;
 ;; Enter regular expressions!
 ;;
@@ -181,6 +186,7 @@ example-data
 (defn repeated-substring? [n]
   (re-matches part-2-pattern (str n)))
 
+
 ;; We can now pass this new function to the `total-invalids` function we've
 ;; used in Part 1, and it should produce the result for Part 2.
 
@@ -189,6 +195,177 @@ example-data
 
 ;; Solved!
 
+
+
+
+
+;; ### Without regex
+;;
+;; We can also solve Part 2 without regex with a string concat "trick".
+;;
+;; If we have a string consisting of two parts, `A` and `B`, and we want to
+;; check if `A` and `B` are the same, we can duplicate the original string,
+;; so `AB` becomes `ABAB`.\
+;; Now, if `A = B`, that also means that `B = A`. So, if we start searching
+;; for the original `AB` pattern (starting not from the very beginning of
+;; the string), we will eventually find it when we encounter the `BA` substring.\
+;; If `A` and `B` are not the same, we would find the `AB` pattern only when
+;; we move past the original string.
+;;
+;; Here is how our logic looks like for two examples:
+;; ```
+;; 567|567
+;;  A | B
+;;
+;; 567|567||567|567
+;;  A | B || A | B
+;;     ^^^  ^^^
+;;    original string found
+;; ```
+;;
+;; ```
+;; 123|789
+;;  A | B
+;;
+;; 123|789||123|789
+;;  A | B || A | B
+;;          ^^^ ^^^
+;;     found only after the original length
+;; ```
+;;
+;; In code, it looks like this:
+
+(defn repeated-substring-2? [n]
+  (let [s (str n)            ; [1]
+        ss (str s s)]        ; [2]
+    (< (str/index-of ss s 1) ; [3]
+       (count s))))          ; [4]
+
+;; We convert a number to string `s` [1], and create a double-string `ss` [2].
+;; We need to check at which index of `ss` we will find the original string `s`,
+;; starting from index `1` [3].\
+;; If we found it before the end of the original string `s`, it means that we
+;; have encountered a number with a repeated substring.
+
+(total-invalids example-data repeated-substring-2?)
+(total-invalids data repeated-substring-2?)
+
+;; We get the same result. Success!
+
+
+
+
+
+
+;; ### Char by char
+;;
+;; Instead of comparing substrings, we can compare characters at given positions.
+;;
+;; For example, if our substring length is 3, we check the characters that are at
+;; multiples-of-3 distance from each other:
+;;
+;; ```
+;; 123|123|123
+;; ^   ^   ^
+;; 0   3   6
+;; 0   0   0  (mod 3)
+;; ```
+
+(defn repeated-substring-3? [n]
+  (let [s   (Long/toString n)                 ; [1]
+        len (count s)]
+    (loop [sublen (quot len 2)]               ; [2]
+      (cond
+        (zero? sublen) false                  ; [3]
+        (and (zero? (rem len sublen))         ; [4]
+             (loop [idx sublen]
+               (cond
+                 (= idx len) true             ; [5]
+                 (not= (.charAt s (rem idx sublen))
+                       (.charAt s idx)) false ; [6]
+                 :else (recur (inc idx)))))
+        true                                  ; [7]
+        :else (recur (dec sublen))))))        ; [8]
+
+;; We are chasing maximum performance, so we'll use the specialized `Long/toString`
+;; instead of general `str` to convert a number to string [1].
+;;
+;; We start from the maximum length of a substring [2].\
+;; If we tried every possible substring length and we didn't find any matches,
+;; there are no repeated substrings [3].
+;;
+;; If the current substring length cleanly divides the original string's length [4],
+;; we proceed to check with `loop` if characters at indices `idx` (starting from
+;; the substring length) match those of a substring on the same position. If there's
+;; a mismatch [6], the whole condition [4] is `false` and we drop to the `:else` branch
+;; and retry our luck with a smaller substring length [8].\
+;; If there was no mismatch along the way and we came to the end of the string [5],
+;; our condition [4] is `true` and we fount our solution and exit the outer `loop` [7].
+;;
+;; P.S. We use Java's `.charAt` instead of Clojure's `get`, as it is significantly faster.
+
+(total-invalids example-data repeated-substring-3?)
+(total-invalids data repeated-substring-3?)
+
+;; Still the same result as before.
+
+
+
+
+
+
+;; ### Performance comparison
+;;
+;; To regex or not to regex, that is the question.
+
+;; ```clj
+;; (require '[criterium.core :as c])
+;;
+;; (c/quick-bench (total-invalids data repeated-substring?))
+;; ```
+
+;; ```
+;; Evaluation count : 18 in 6 samples of 3 calls.
+;;              Execution time mean : 44.040410 ms
+;;     Execution time std-deviation : 4.576698 ms
+;;    Execution time lower quantile : 38.477877 ms ( 2.5%)
+;;    Execution time upper quantile : 49.527380 ms (97.5%)
+;;                    Overhead used : 1.867496 ns)
+;; ```
+
+;; ```clj
+;; (c/quick-bench (total-invalids data repeated-substring-2?))
+;; ```
+
+;; ```
+;; Evaluation count : 24 in 6 samples of 4 calls.
+;;              Execution time mean : 33.577091 ms
+;;     Execution time std-deviation : 1.364652 ms
+;;    Execution time lower quantile : 31.998935 ms ( 2.5%)
+;;    Execution time upper quantile : 34.863190 ms (97.5%)
+;;                    Overhead used : 1.867496 ns)
+;; ```
+
+;; The non-regex version is 1.33x faster. Not a mind-blowing difference, but
+;; still significant.
+;;
+;; How about our char-by-char solution?
+
+
+;; ```clj
+;; (c/quick-bench (total-invalids data repeated-substring-3?))
+;; ```
+
+;; ```
+;; Evaluation count : 78 in 6 samples of 13 calls.
+;;              Execution time mean : 8.249629 ms
+;;     Execution time std-deviation : 519.204099 µs
+;;    Execution time lower quantile : 7.796738 ms ( 2.5%)
+;;    Execution time upper quantile : 9.059101 ms (97.5%)
+;;                    Overhead used : 1.834820 ns)
+;; ```
+
+;; Wow, 4x faster than the non-regex version!
 
 
 
@@ -208,9 +385,8 @@ example-data
 ;; - `partition`: split a sequence into chunks of equal length
 ;; - `re-matches`: check if a _whole_ string matches a regex pattern
 
-
 ^:kindly/hide-code
 (defn -main [input]
   (let [data (parse-data input)]
     [(total-invalids data identical-halves?)
-     (total-invalids data repeated-substring?)]))
+     (total-invalids data repeated-substring-3?)]))
