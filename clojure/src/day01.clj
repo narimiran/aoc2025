@@ -62,8 +62,8 @@ L82")
 ;; convert the resulting string of digits to a number with the
 ;; [`parse-long` function](https://clojuredocs.org/clojure.core/parse-long).
 
-(defn parse-line [line]
-  (* (if (= \L (first line)) -1 1)
+(defn parse-line [^String line]
+  (* (if (= \L (.charAt line 0)) -1 1)
      (parse-long (subs line 1))))
 
 ;; Let's see if it works as expected:
@@ -90,8 +90,8 @@ example-data
 ;; The dial has 100 numbers on it, from 0 to 99, and it starts at number 50.
 ;; Let's define those so we don't repeat ourselves later on:
 
-(def size 100)
-(def start 50)
+(def ^:const size 100)
+(def ^:const start 50)
 
 
 
@@ -133,6 +133,9 @@ example-data
 
 
 
+
+
+
 ;; ## Part 2
 ;;
 ;; We've realized we had made a wrong assumption (oh boy, this hits too close
@@ -153,18 +156,20 @@ example-data
   (-> (reduce (fn [[zeros start] n]
                 (let [end (+ start n)]
                   [(+ zeros
-                      (abs (quot end size))        ; [1]
-                      (if (>= start 1 0 end) 1 0)) ; [2]
-                   (mod end size)]))               ; [3]
+                      (abs (mod end size))  ; [1]
+                      (if (and (pos? start)
+                               (<= end 0))
+                        1 0))               ; [2]
+                   (mod end size)]))        ; [3]
               [0 start]
               data)
-      first))                                      ; [4]
+      first))                               ; [4]
 
 
 ;; If the result of a turn (in absolute value) is higher than 100, e.g. -765, it
 ;; means that we crossed zero _at least_ 7 times [1].\
 ;; The condition [2] covers cases where we start from a positive starting position
-;; (`(>= start 1)`) and we either stop at or pass through zero (`(>= 0 end)`).
+;; (`(>= start 1)`) and we either stop at or pass through zero (`(<= end 0)`).
 ;; If we started from a zero, we don't cross it (and we counted it already on
 ;; a previous turn).\
 ;; Our end position on the dial is always positive [3].
@@ -177,6 +182,7 @@ example-data
 
 
 ;; Congrats! Day 1 solved!
+
 
 
 
@@ -217,7 +223,38 @@ example-data
 
 
 
-;; ### Performance comparison
+;; ### Both parts at once
+;;
+;; We can use the idea from the initial `part-2` function to solve both
+;; parts at once.\
+;; We will switch from `reduce` to `loop` to gain even more performance:
+
+(defn both-parts [data]
+  (let [n (count data)]
+    (loop [i 0
+           start start
+           pt-1 0
+           pt-2 0]
+      (if (= i n)
+        [pt-1 pt-2]
+        (let [end  (+ start (long (data i)))
+              end' (long (mod end size))]
+          (recur (inc i)
+                 end'
+                 (if (zero? end') (inc pt-1) pt-1)
+                 (+ pt-2
+                    (long (abs (quot end size)))
+                    (if (and (pos? start) (<= end 0)) 1 0))))))))
+
+(both-parts example-data)
+(both-parts data)
+
+
+
+
+
+
+;; ## Performance comparison
 ;;
 ;; Ok, the initial solution is more complicated. Is it at least faster than the
 ;; simple solution?
@@ -232,12 +269,12 @@ example-data
 ;; ```
 ;;
 ;; ```
-;; Evaluation count : 2958 in 6 samples of 493 calls.
-;;              Execution time mean : 290.680576 µs
-;;     Execution time std-deviation : 161.535181 µs
-;;    Execution time lower quantile : 204.303162 µs ( 2.5%)
-;;    Execution time upper quantile : 501.907167 µs (97.5%)
-;;                    Overhead used : 1.832958 ns)
+;; Evaluation count : 7068 in 6 samples of 1178 calls.
+;;              Execution time mean : 138.072921 µs
+;;     Execution time std-deviation : 64.983686 µs
+;;    Execution time lower quantile : 85.491251 µs ( 2.5%)
+;;    Execution time upper quantile : 221.668623 µs (97.5%)
+;;                    Overhead used : 1.831777 ns)
 ;; ```
 ;;
 ;; ```clj
@@ -253,35 +290,30 @@ example-data
 ;;                    Overhead used : 1.834727 ns)
 ;; ```
 ;;
-;; Even though all turns are small (smaller than 1000), there is ~250x
+;; Even though all turns are small (smaller than 1000), there is ~500x
 ;; performance difference between two solutions.
 ;; To be honest, I didn't expect such a large difference.
 
 
 
+;; How about the solution which solves both parts at once?
 
+;; ```clj
+;; (c/quick-bench (both-parts data))
+;; ```
 
+;; ```
+;; Evaluation count : 9324 in 6 samples of 1554 calls.
+;;              Execution time mean : 63.457092 µs
+;;     Execution time std-deviation : 559.584067 ns
+;;    Execution time lower quantile : 62.977015 µs ( 2.5%)
+;;    Execution time upper quantile : 64.067157 µs (97.5%)
+;;                    Overhead used : 1.831777 ns)
+;; ```
 
-;; ## Both parts at once
-;;
-;; We can use the idea from the initial `part-2` function to solve both
-;; parts at once:
+;; Another 2x speed gain, making it three orders of magnitude faster than
+;; the simple solution from above (which only solves Part 2). Nice gains!
 
-(defn both-parts [data]
-  (-> (reduce (fn [[start pt-1 pt-2] n]
-                (let [end  (+ start n)
-                      end' (mod end size)]
-                  [end'
-                   (if (zero? end') (inc pt-1) pt-1)
-                   (+ pt-2
-                      (abs (quot end size))
-                      (if (>= start 1 0 end) 1 0))]))
-              [start 0 0]
-              data)
-      rest))
-
-(both-parts example-data)
-(both-parts data)
 
 
 
