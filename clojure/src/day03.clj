@@ -3,7 +3,7 @@
   {:title "Lobby"
    :url "https://adventofcode.com/2025/day/3"
    :extras ""
-   :highlights "reduce-kv, reduced, partial"
+   :highlights "type-hints, partial"
    :remark "Recursion made easy."}
   (:require [aoc-utils.core :as aoc]))
 
@@ -71,35 +71,36 @@ example-data
 ;;
 ;; We can do it in one pass by rolling our own function:
 
-(defn strongest-battery [batteries]
-  (reduce-kv (fn [[_ max-v :as acc] idx v]     ; [1]
-               (cond
-                 (= v 9)     (reduced [idx v]) ; [2]
-                 (> v max-v) [idx v]           ; [3]
-                 :else       acc))
-             [0 0]                             ; [4]
-             batteries))
+(defn strongest-index ^long [batteries ^long start ^long end] ; [1]
+  (loop [i start
+         best-idx start
+         best-v -1]
+    (if (= i end)
+      best-idx
+      (let [v (long (batteries i))]
+        (cond
+          (= v 9)      i                                      ; [2]
+          (> v best-v) (recur (inc i) i v)                    ; [3]
+          :else        (recur (inc i) best-idx best-v))))))   ; [4]
 
-;; We could have converted our vector of batteries into the one with
-;; `(index, value)` pairs, but I find it nicer to use the
-;; [`reduce-kv` function](https://clojuredocs.org/clojure.core/reduce-kv)
-;; which does that automatically for us [1].
-;; The first argument to `reduce-kv` is a function which takes three arguments:
-;; accumulator, key, value. This is usually used for hashmaps, but it also
-;; works for vectors where the key is the index of an element.\
-;; Our accumulator will be a vector of two elements: an index at which we found
-;; the maximum value, and the maximum value itself [4].
+;; The `^long` type-hints here allow some noticeable performance benefits, and
+;; we'll take that free gift [1].
+;; Also for the `v`, we need cast it to `long`, so that the loop variable
+;; `best-v` stays primitive (otherwise it becomes an object).\
+;; We're talking about microseconds here, but when the whole task takes less
+;; than a millisecond, it becomes significant.
 ;;
 ;; If we've found battery with `9` jolts, we know there can't be anything
-;; more powerful than it and we can exit immediately with
-;; [`reduced`](https://clojuredocs.org/clojure.core/reduced) [2].\
+;; more powerful than it and we can exit immediately [2].\
 ;; Otherwise, we check if the current value is strictly larger than the
 ;; previous maximum and if so, its index and value become the new accumulator [3].
-;;
+;; If not, we continue our search with previous best index and value [4].
 
-(strongest-battery [2 7 5 7 3])
+(strongest-index [2 7 5 7 3] 0 5)
 
 ;; It correctly picks up the first `7` at index `1`. We can proceed.
+
+
 
 
 
@@ -132,30 +133,25 @@ example-data
          end (- (count batteries) (dec amount))
          remaining amount
          joltage 0]
-    (if (zero? remaining)  ; [1]
+    (if (zero? remaining)                             ; [1]
       joltage
-      (let [candidates (subvec batteries start end)    ; [2]
-            [idx v]    (strongest-battery candidates)] ; [3]
-        (recur (+ start (inc idx))       ; [4]
-               (inc end)                 ; [5]
+      (let [idx (strongest-index batteries start end) ; [2]
+            v (long (batteries idx))]
+        (recur (inc idx)
+               (inc end)                              ; [3]
                (dec remaining)
-               (+ (* 10 joltage) v)))))) ; [6]
+               (+ (* 10 joltage) v))))))              ; [4]
 
-;; **The most important part of a recursion is knowing when to quit.**
+;; The most important part of a recursion is knowing when to quit.
 ;; In our case here, it is when there are `zero?` batteries `remaining` to
 ;; pick up [1]: we just return the collected `joltage` so far.
 ;;
-;; Otherwise, we need to find the valid `candidates` among the battery bank [2].
-;; We use the [`subvec` function](https://clojuredocs.org/clojure.core/subvec),
-;; which does what we want with great `O(1)` performance.\
-;; Once we've limited ourselves to the valid candidates, we can now find
-;; the `strongest-battery` among them [3].
-;; Be careful, this will return `idx` of a given `candidates` _subvector_
-;; (not of the original `batteries` vector) so we need
-;; to _add_ it to the index it `start`ed from [4].\
-;; For the next iteration we can consider one more battery on the right [5]
+;; We limit ourselves to allowed `start` and `end` and find the strongest battery
+;; in that range [2].
+;;
+;; For the next iteration we can consider one more battery on the right [3]
 ;; and we're adding the power of the battery we've just found to the
-;; total `joltage` [6].
+;; total `joltage` [4].
 ;;
 ;; This should be it, but let's check if it works as expected for different
 ;; amounts of batteries we need:
@@ -165,6 +161,8 @@ example-data
     (max-joltage amount batteries)))
 
 ;; This looks correct. Time to solve the task.
+
+
 
 
 
@@ -218,8 +216,8 @@ example-data
 ;; But what is mind-bending is that 25% of this year's AoC is already behind us!
 ;;
 ;; Today's highlights:
-;; - `reduce-kv`: can be used on vectors to get indices
-;; - `reduced`: early exit from `reduce`
+;; - type hints: sometimes a simple `^long` type hint or casting to `long`
+;;   can help with the performance
 ;; - `partial`: partial application of a function
 
 
