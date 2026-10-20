@@ -55,7 +55,9 @@ iii: out")
       build-graph))                      ; [2]
 
 ;; For each line in the input, we will split the string on `\W+`, which is
-;; a regex speak for "one or more non-characters".
+;; a regex speak for "one or more non-word characters". We use it instead of
+;; the default `\s+` separator (whitespace), so that the `:` at the end of
+;; the first words is not included.\
 ;; We will convert each name of a device into a keyword for convenience [1].
 ;; (I've added `:keywords` to the
 ;; [aoc-utils library](https://narimiran.github.io/aoc-utils/aoc-utils.core.html)
