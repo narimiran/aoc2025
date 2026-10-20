@@ -296,8 +296,82 @@
 
 
 
+;; ### Packed data
+;;
+;; Currently, every coordinate is represented by the `[x y]` vector.
+;; We can, instead, use a single number in a form `(x + mult*y)`.
+;;
+;; My `aoc-utils` library has a
+;; [`create-hashed-grid` function](https://narimiran.github.io/aoc-utils/aoc-utils.core.html#var-create-hashed-grid)
+;; to do exactly that. The default multiplier for `y` coordinate is 1000, which is
+;; more than enough for our small grid here.
 
-;; ### Performance comparison
+(defn parse-packed-data [input]
+  (-> input
+      (aoc/parse-lines :chars)
+      (aoc/create-hashed-grid {\@ :rolls}) ; [1]
+      :rolls))
+
+;; The only change from the original function is that we now use
+;; `create-hashed-grid` instead of `create-grid` [1].
+
+
+(def packed-data (parse-packed-data (aoc/read-input 4)))
+
+;; Neighbours of a point are now just numbers:
+
+(def ^:const nb-8
+  [-1001 -1000 -999
+      -1        1
+     999  1000 1001])
+
+(defn accessible-roll-packed? [rolls ^long pt]
+  (loop [i 0
+         nbs 0]
+    (cond
+      (= nbs 4) false
+      (> i (+ 4 nbs)) true
+      :else
+      (let [delta (long (nb-8 i))]      ; [1]
+        (recur (inc i)
+               (if (rolls (+ pt delta)) ; [2]
+                 (inc nbs)
+                 nbs))))))
+
+;; The only changes are the way we calculate a neighbour at lines [1] and [2].
+
+;; We can now calculate the result for Part 1 in the same way we did earlier:
+
+(defn part-1-packed [rolls]
+  (count (filter #(accessible-roll-packed? rolls %) rolls)))
+
+(part-1-packed packed-data)
+
+
+
+
+;; For Part 2, we use the same logic as before:
+
+(defn remove-packed [rolls]
+  (loop [rolls rolls
+         [r & stack'] (seq rolls)
+         removed 0]
+    (cond
+      (nil? r) removed
+      (and (rolls r) (accessible-roll-packed? rolls r))
+      (recur (disj rolls r)
+             (into stack' (filter rolls (map #(+ r %) nb-8)))
+             (inc removed))
+      :else (recur rolls stack' removed))))
+
+(remove-packed packed-data)
+
+
+
+
+
+
+;; ## Performance comparison
 ;;
 ;; Like in our [Day 1 solution](day01.html), we will compare the performance of
 ;; our three approaches with the
@@ -311,11 +385,11 @@
 ;;
 ;; ```
 ;; Evaluation count : 6 in 6 samples of 1 calls.
-;;              Execution time mean : 124.700207 ms
-;;     Execution time std-deviation : 3.819113 ms
-;;    Execution time lower quantile : 120.651245 ms ( 2.5%)
-;;    Execution time upper quantile : 130.344187 ms (97.5%)
-;;                    Overhead used : 1.832033 ns)
+;;              Execution time mean : 145.054417 ms
+;;     Execution time std-deviation : 2.346185 ms
+;;    Execution time lower quantile : 142.505658 ms ( 2.5%)
+;;    Execution time upper quantile : 147.581288 ms (97.5%)
+;;                    Overhead used : 1.637089 ns)
 ;; ```
 ;;
 ;; ```clj
@@ -324,11 +398,11 @@
 ;;
 ;; ```
 ;; Evaluation count : 24 in 6 samples of 4 calls.
-;;              Execution time mean : 29.775313 ms
-;;     Execution time std-deviation : 8.343539 ms
-;;    Execution time lower quantile : 21.650080 ms ( 2.5%)
-;;    Execution time upper quantile : 42.306694 ms (97.5%)
-;;                    Overhead used : 1.832033 ns)
+;;              Execution time mean : 35.226995 ms
+;;     Execution time std-deviation : 7.882422 ms
+;;    Execution time lower quantile : 28.640494 ms ( 2.5%)
+;;    Execution time upper quantile : 45.392904 ms (97.5%)
+;;                    Overhead used : 1.637089 ns)
 ;; ```
 
 ;; About 4x speedup! Not bad for a small difference: we just changed
@@ -340,16 +414,36 @@
 ;; ```
 ;;
 ;; ```
-;; Evaluation count : 36 in 6 samples of 6 calls.
-;;              Execution time mean : 19.357323 ms
-;;     Execution time std-deviation : 243.433805 µs
-;;    Execution time lower quantile : 19.101958 ms ( 2.5%)
-;;    Execution time upper quantile : 19.644974 ms (97.5%)
-;;                    Overhead used : 1.832033 ns)
+;; Evaluation count : 30 in 6 samples of 5 calls.
+;;              Execution time mean : 21.649870 ms
+;;     Execution time std-deviation : 561.582719 µs
+;;    Execution time lower quantile : 21.116228 ms ( 2.5%)
+;;    Execution time upper quantile : 22.291778 ms (97.5%)
+;;                    Overhead used : 1.637089 ns)
 ;; ```
 ;;
 ;; Even without any parallelization, this version gains another 1.5x
 ;; speedup.
+
+
+;; ```clj
+;; (c/quick-bench (remove-packed packed-data))
+;; ```
+;;
+;; ```
+;; Evaluation count : 84 in 6 samples of 14 calls.
+;;              Execution time mean : 7.297688 ms
+;;     Execution time std-deviation : 112.757439 µs
+;;    Execution time lower quantile : 7.176062 ms ( 2.5%)
+;;    Execution time upper quantile : 7.458879 ms (97.5%)
+;;                    Overhead used : 1.637089 ns)
+;; ```
+;;
+;; Another 3x speedup compared to the next-best solution.
+;; Making it 20x faster than the initial solution.
+
+
+
 
 
 
@@ -449,6 +543,6 @@
 
 ^:kindly/hide-code
 (defn -main [input]
-  (let [data (parse-data input)]
-    [(part-1 data)
-     (remove-directly data)]))
+  (let [data (parse-packed-data input)]
+    [(part-1-packed data)
+     (remove-packed data)]))
