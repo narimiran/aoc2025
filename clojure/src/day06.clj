@@ -157,10 +157,10 @@
 
 (defn solve [input]
   (let [lines (aoc/parse-lines input)
-        operators (->> (last lines)
+        operators (->> (peek lines)
                        (re-seq #"\*|\+")       ; [1]
                        (mapv {"+" + , "*" *})) ; [2]
-        numbers-1 (number-columns (butlast lines))
+        numbers-1 (number-columns (pop lines))
         numbers-2 (vertical-numbers input)]
     [(calculate operators numbers-1)
      (calculate operators numbers-2)]))
